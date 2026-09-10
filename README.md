@@ -61,12 +61,13 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 | `data/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 5.6 MB + RDAP |
 | `data/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
 | `data/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
-| `data/05_ip_probe_http.json` | one HTTP observation per phase 3 target | — | — |
+| `data/05_ip_probe_http.json` | one HTTP observation per phase 3 target | 49,572 | 18 MB |
 
 - Counts verified 2026-09-10 against the RIR delegation files fetched that day.
 - Of the 9,200 probe-bearing blocks, 8,616 are operator-held (`allocated` or `assigned`) and 584 are not (`available` or `reserved`).
 - Every probe falls inside some RIR record; no probe is entirely absent from the registry files.
 - `data/03_ip_probe.json` is large because it repeats the mapping that `data/01` plus `data/02` already imply; it exists so that later phases can stream one file.
+- The 2026-09-10 phase 3 pass over the 49,572 unheld probes answered 99 times, refused 6 times, reset once, and timed out 49,466 times. Every answer sat in a block the registry calls `reserved`; 582 of the 584 unheld blocks were silent.
 
 ## Running the Project
 

@@ -11,7 +11,13 @@ dashboard from the data files is still on the <code>TODO.md</code> list.
 <tr><td><code>data/02_ip_block.json</code></td><td>RIR blocks holding at least one probe</td><td>9,200</td></tr>
 <tr><td><code>data/03_ip_probe.json</code></td><td>probe-to-block pairs (operator-held)</td><td>7,351,236</td></tr>
 <tr><td><code>data/04_ip_probe.json</code></td><td>probes no operator holds</td><td>49,572</td></tr>
-<tr><td><code>data/05_ip_probe_http.json</code></td><td>HTTP observations</td><td>—</td></tr>
+<tr><td><code>data/05_ip_probe_http.json</code></td><td>HTTP observations</td><td>49,572</td></tr>
 </table>
+
+<p>
+Phase 3 outcome, 2026-09-10: <code>http_response</code> 99,
+<code>connect_refused</code> 6, <code>connection_reset</code> 1,
+<code>timeout</code> 49,466.
+</p>
 
 <p>RIR delegation files fetched 2026-09-10; digests in <code>data/raw/SHA256SUMS</code>.</p>

@@ -17,21 +17,29 @@ supposed to answer at all.
 <h2>Status</h2>
 
 <p>
-Phase 1 (probe generation) and phase 2 (block collection) are complete;
-phase 3 (probe observation) has its tooling built and waits on the full run.
-Counts below verified 2026-09-10.
+Phases 1, 2, and 3 are complete. Phase 3 ran on 2026-09-10: 49,572 probes in
+space no operator holds, each asked one HTTP question. Counts below verified
+2026-09-10.
 </p>
 
 <ul>
 <li>Phase 1 — <code>data/01_ip_probe.json</code> — 7,400,808 probes.</li>
-<li>Phase 2 — <code>data/02_ip_block.json</code> — 9,200 blocks holding probes (8,616 operator-held, 584 not).</li>
+<li>Phase 2 — <code>data/02_ip_block.json</code> — 9,200 blocks holding probes (8,616 operator-held, 584 not), each with its RIR RDAP record.</li>
 <li>Phase 2 — <code>data/03_ip_probe.json</code> — 7,351,236 probe-to-block pairs.</li>
 <li>Phase 2 — <code>data/04_ip_probe.json</code> — 49,572 probes no operator holds.</li>
-<li>Phase 3 — <code>data/05_ip_probe_http.json</code> — not yet written.</li>
+<li>Phase 3 — <code>data/05_ip_probe_http.json</code> — 49,572 observations: 99 answers, 6 refused, 1 reset, 49,466 timeouts.</li>
 </ul>
 
 <p>
-Run <code>make probes</code>, <code>make blocks</code>, and
-<code>make observe</code> to reproduce each phase; see <code>README.md</code>
-and <code>PHASES.md</code>.
+Every answer came from a block the registry calls <i>reserved</i>. The
+loudest is <code>23.191.149.0/24</code>, inside ARIN block
+<code>23.191.137.0-23.191.151.255</code>: 98 probes answered with an nginx
+<code>301</code> to HTTPS. Six addresses in reserved APNIC and ARIN blocks
+refused the connection, which means something is listening there.
+</p>
+
+<p>
+Run <code>make probes</code>, <code>make blocks</code>,
+<code>make enrich</code>, and <code>make observe</code> to reproduce each
+phase; see <code>README.md</code> and <code>PHASES.md</code>.
 </p>
