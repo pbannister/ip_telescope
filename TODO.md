@@ -8,10 +8,6 @@
       (thread count and timeout), and whether the run is repeated on a
       schedule so that answers can be compared over time.
 * [ ] confirm the phase 3 output name `data/05_ip_probe_http.json`.
-* [ ] decide whether `data/02_ip_block.json` should be enriched with RDAP or
-      whois object metadata (network handle, name, parent, organization,
-      entities, events) for the 9,200 blocks, beyond the fields the RIR
-      delegation files publish in bulk.
 * [ ] decide whether phase 3 should also try HTTPS (`--port 443`) and
       whether a TLS handshake result belongs in the same observation.
 * [ ] decide how to treat a `reserved` block that a transit network answers
@@ -35,3 +31,8 @@
 * [x] phase 3: observation tooling, `sources/ip_probe_observe.py` and
       `scripts/03-probe-observe.sh`, with a loopback test for the answered
       and refused paths.
+* [x] phase 2 enrichment: `sources/ip_block_enrich.py` and
+      `scripts/04-block-enrich.sh`, adding the RIR RDAP record to every
+      collected block, with answers cached in `data/raw/RDAP-CACHE.jsonl`.
+      — **Decided 2026-09-10 by the owner**: enrich all 9,200 probe-bearing
+      blocks, not only the blocks no operator holds.

@@ -58,7 +58,7 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 | File | Contents | Count | Size |
 | --- | --- | --- | --- |
 | `data/01_ip_probe.json` | every routable four-prime-octet address | 7,400,808 | 147 MB |
-| `data/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID | 9,200 | 5.6 MB |
+| `data/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 5.6 MB + RDAP |
 | `data/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
 | `data/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
 | `data/05_ip_probe_http.json` | one HTTP observation per phase 3 target | — | — |
@@ -72,6 +72,7 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 
 - `make probes` writes `data/01_ip_probe.json`.
 - `make blocks` fetches the RIR delegation files into `data/raw/` and writes the phase 2 files. Add `--refresh` to fetch again: `sh scripts/02-block-collect.sh --refresh`.
+- `make enrich` adds the RIR RDAP record to every collected block, caching each answer in `data/raw/RDAP-CACHE.jsonl`. Use `--limit N` for a trial; the lookup is rate limited by `--rate` requests per second.
 - `make observe` runs phase 3 over `data/04_ip_probe.json`. Use `--limit` for a trial run.
 - `make test` runs every test; the phase tests are portable and need no network.
 - `make site` builds the project pages.

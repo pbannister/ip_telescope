@@ -9,6 +9,9 @@
 #		         (phase 2: fetch the RIR delegation files, then write
 #		         data/02_ip_block.json, data/03_ip_probe.json, and
 #		         data/04_ip_probe.json)
+#		enrich: sh scripts/04-block-enrich.sh
+#		         (phase 2 enrichment: add the RIR RDAP record to every
+#		         collected block; answers are cached in data/raw/)
 #		observe: sh scripts/03-probe-observe.sh
 #		         (phase 3: HTTP GET every probe that no operator holds,
 #		         then write data/05_ip_probe_http.json; pass --limit for a
@@ -31,6 +34,9 @@ probes:
 
 blocks:
 	sh scripts/02-block-collect.sh
+
+enrich:
+	sh scripts/04-block-enrich.sh
 
 observe:
 	sh scripts/03-probe-observe.sh
@@ -56,4 +62,4 @@ deploy:
 install:
 	@echo '==== No install yet defined'
 
-.PHONY: probes blocks observe build site clean test deploy install
+.PHONY: probes blocks enrich observe build site clean test deploy install

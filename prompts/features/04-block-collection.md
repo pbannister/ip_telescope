@@ -36,6 +36,16 @@ populations:
   probe list produce the same outputs.
 * Collection must report the block and probe counts it wrote.
 
+## Requirements (RDAP enrichment)
+
+* Every collected block must be enrichable with the RIR object behind it, taken from RDAP.
+* The RDAP service for a block must come from the IANA RDAP bootstrap for IPv4, unless a service is named explicitly.
+* Every RDAP answer must be stored verbatim under an `rdap` key of the block, next to a summary of handle, name, type, parent handle, start and end address, country, organization, and events.
+* Every answer must be cached in `data/raw/RDAP-CACHE.jsonl`, so a repeated run does not ask a registry twice.
+* An answer of `404` must be recorded as an answer, not treated as a failure: it states that the registry holds no object for that address.
+* Requests must be rate limited across threads, and a rate limit or transport failure must be retried a bounded number of times.
+* Enrichment must be idempotent: running it twice must leave the block file unchanged.
+
 ## Behavior
 
 * `sh scripts/02-block-collect.sh` fetches the delegation files into
@@ -46,6 +56,14 @@ populations:
   again before writing.
 * `python3 sources/ip_block_collect.py --raw-directory DIR --data-directory DIR`
   performs the collection against any pair of directories.
+* `sh scripts/04-block-enrich.sh` adds RDAP metadata to every collected
+  block; `--limit N` enriches only the first N uncached blocks, and
+  `--refresh` ignores the cache.
+* `--rate` sets the requests per second across all threads, and `--thread`
+  sets the number of concurrent requests.
+* Progress is reported every 500 answered blocks.
+* `data/raw/RDAP-CACHE.jsonl` holds one JSON record per answered address and
+  is the record of what each registry was asked.
 * `data/02_ip_block.json` is an array of objects, one per block, with
   `block_uuid`, `probe_count`, `assigned`, the verbatim `rir_record`, and
   `derived` fields (`address_end`, `prefix`, `opaque_id`).
