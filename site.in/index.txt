@@ -1,0 +1,37 @@
+<h1>Project status</h1>
+
+<p>
+<b>ip_telescope</b> collects information about IPv4 addresses that are
+curious: addresses whose answers, or whose silence, do not match what the
+registry says should be there.
+</p>
+<p>
+The first curiosity is a number trick. An <i>ip_probe</i> is an IPv4 address
+whose four octets are each prime and which is valid for routing across the
+Internet, such as <code>2.2.2.2</code>. There are exactly 7,400,808 of them.
+The second curiosity is the quiet space: 49,572 of those addresses sit in
+blocks that no Regional Internet Registry operator holds, where nothing is
+supposed to answer at all.
+</p>
+
+<h2>Status</h2>
+
+<p>
+Phase 1 (probe generation) and phase 2 (block collection) are complete;
+phase 3 (probe observation) has its tooling built and waits on the full run.
+Counts below verified 2026-09-10.
+</p>
+
+<ul>
+<li>Phase 1 — <code>data/01_ip_probe.json</code> — 7,400,808 probes.</li>
+<li>Phase 2 — <code>data/02_ip_block.json</code> — 9,200 blocks holding probes (8,616 operator-held, 584 not).</li>
+<li>Phase 2 — <code>data/03_ip_probe.json</code> — 7,351,236 probe-to-block pairs.</li>
+<li>Phase 2 — <code>data/04_ip_probe.json</code> — 49,572 probes no operator holds.</li>
+<li>Phase 3 — <code>data/05_ip_probe_http.json</code> — not yet written.</li>
+</ul>
+
+<p>
+Run <code>make probes</code>, <code>make blocks</code>, and
+<code>make observe</code> to reproduce each phase; see <code>README.md</code>
+and <code>PHASES.md</code>.
+</p>

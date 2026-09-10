@@ -1,0 +1,17 @@
+<h1>Dashboard</h1>
+
+<p>
+Counts below are a hand-written snapshot taken 2026-09-10; a generated
+dashboard from the data files is still on the <code>TODO.md</code> list.
+</p>
+
+<table>
+<tr><th>Data file</th><th>Contents</th><th>Count</th></tr>
+<tr><td><code>data/01_ip_probe.json</code></td><td>routable four-prime-octet addresses</td><td>7,400,808</td></tr>
+<tr><td><code>data/02_ip_block.json</code></td><td>RIR blocks holding at least one probe</td><td>9,200</td></tr>
+<tr><td><code>data/03_ip_probe.json</code></td><td>probe-to-block pairs (operator-held)</td><td>7,351,236</td></tr>
+<tr><td><code>data/04_ip_probe.json</code></td><td>probes no operator holds</td><td>49,572</td></tr>
+<tr><td><code>data/05_ip_probe_http.json</code></td><td>HTTP observations</td><td>—</td></tr>
+</table>
+
+<p>RIR delegation files fetched 2026-09-10; digests in <code>data/raw/SHA256SUMS</code>.</p>
