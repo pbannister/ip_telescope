@@ -30,6 +30,13 @@
       `data/02`.
 * [ ] decide whether the project pages should generate the dashboard from
       `data/` instead of the hand-written snapshot.
+* [ ] re-ask the blocks left without an RDAP record on 2026-09-10, 617 of
+      9,200: `rdap.afrinic.net` was unreachable from the owning host (196
+      blocks), and LACNIC, ARIN, RIPE NCC, and APNIC answered `429` under
+      sustained load (421 blocks). Retry later at a slower rate, or fall
+      back to `whois` on port 43 for AFRINIC. The enricher retries them
+      automatically, because an unanswered address is not cached as an
+      answer.
 
 ## Recently Completed
 

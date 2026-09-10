@@ -177,5 +177,87 @@ case "$output_enrich" in
     *) fail "cached run still queried the service: $output_enrich" ;;
 esac
 
+# A service that never answers must not stall the run, and its failures must
+# not be cached as if they were answers.
+DIRECTORY_DEAD="$DIRECTORY_TEST/dead"
+mkdir -p "$DIRECTORY_DEAD/data" "$DIRECTORY_DEAD/raw"
+
+python3 - "$DIRECTORY_DEAD/data/02_ip_block.json" <<'PYTHON_FIXTURE'
+import json
+import sys
+
+list_block = []
+for index_block in range(5):
+    list_block.append(
+        {
+            "block_uuid": f"33333333-3333-5333-8333-33333333333{index_block}",
+            "probe_count": 1,
+            "assigned": True,
+            "rir_record": {
+                "registry": "arin",
+                "country": "US",
+                "type": "ipv4",
+                "start": f"23.191.15{index_block}.0",
+                "value": 256,
+                "date": "20100101",
+                "status": "allocated",
+                "extensions": [""],
+            },
+            "derived": {
+                "address_end": f"23.191.15{index_block}.255",
+                "prefix": None,
+                "opaque_id": "",
+            },
+        }
+    )
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump(list_block, handle, indent=4)
+PYTHON_FIXTURE
+
+PORT_DEAD=$(python3 -c '
+import socket
+socket_probe = socket.socket()
+socket_probe.bind(("127.0.0.1", 0))
+print(socket_probe.getsockname()[1])
+socket_probe.close()
+')
+
+if ! output_dead=$(python3 "$PROGRAM_ENRICH" \
+    --data-directory "$DIRECTORY_DEAD/data" \
+    --raw-directory "$DIRECTORY_DEAD/raw" \
+    --service "http://127.0.0.1:$PORT_DEAD" \
+    --rate 0 --thread 4 --retry 1 --retry-wait 0 --timeout 2); then
+    fail "enricher failed against a dead service: $output_dead"
+fi
+case "$output_dead" in
+    *service_closed=*) ;;
+    *) fail "dead service was not closed: $output_dead" ;;
+esac
+
+python3 - "$DIRECTORY_DEAD/data/02_ip_block.json" <<'PYTHON_CHECK' || fail "dead-service run is wrong"
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    list_block = json.load(handle)
+assert 5 == len(list_block)
+for document_block in list_block:
+    assert None is document_block["rdap"]["status"], document_block["rdap"]
+    assert {} == document_block["rdap"]["summary"]
+PYTHON_CHECK
+
+# The failures were not answers, so the next run must ask again.
+if ! output_retry=$(python3 "$PROGRAM_ENRICH" \
+    --data-directory "$DIRECTORY_DEAD/data" \
+    --raw-directory "$DIRECTORY_DEAD/raw" \
+    --service "http://127.0.0.1:$PORT_DEAD" \
+    --rate 0 --thread 4 --retry 1 --retry-wait 0 --timeout 2); then
+    fail "enricher failed on the retry run: $output_retry"
+fi
+case "$output_retry" in
+    *'enrich: queried=0'*) fail "a transport failure was cached as an answer" ;;
+    *) ;;
+esac
+
 echo '06-block-enrich: ok'
 exit 0

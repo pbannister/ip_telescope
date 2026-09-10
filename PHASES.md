@@ -21,7 +21,9 @@ Current: phase 3 — complete
   an assigned UUID, plus the probe-to-block mapping and the probes that no
   operator holds; written to `data/02_ip_block.json` (9,200 blocks),
   `data/03_ip_probe.json` (7,351,236 pairs), and `data/04_ip_probe.json`
-  (49,572 addresses). Enriched with the RIR RDAP record for every block — complete
+  (49,572 addresses). Enriched with the RIR RDAP record for every block:
+  8,556 answered, 27 answered `404`, 617 left unanswered when AFRINIC was
+  unreachable and the other registries rate limited the run — complete
 - Phase 3 — Probe observation: one HTTP `GET /` per probe that no operator
   holds, with the outcome class, status, headers, body digest, and timings;
   written to `data/05_ip_probe_http.json`. The 2026-09-10 pass ran 49,572

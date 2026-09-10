@@ -34,8 +34,18 @@ space no operator holds, each asked one HTTP question. Counts below verified
 Every answer came from a block the registry calls <i>reserved</i>. The
 loudest is <code>23.191.149.0/24</code>, inside ARIN block
 <code>23.191.137.0-23.191.151.255</code>: 98 probes answered with an nginx
-<code>301</code> to HTTPS. Six addresses in reserved APNIC and ARIN blocks
-refused the connection, which means something is listening there.
+<code>301</code> to HTTPS. RDAP records no operator for that block either —
+only its parent <code>23.0.0.0/8</code>, which ARIN holds itself. Six
+addresses in reserved APNIC and ARIN blocks refused the connection, and one
+of those blocks (<code>199.47.160.0/21</code>) has no RDAP object at all.
+</p>
+
+<p>
+The RDAP enrichment of the 9,200 blocks answered for 8,556 and returned
+<code>404</code> for 27; 617 were left unanswered because
+<code>rdap.afrinic.net</code> was unreachable and the other registries rate
+limited the run. Those addresses are not treated as answered, so a later run
+asks again.
 </p>
 
 <p>

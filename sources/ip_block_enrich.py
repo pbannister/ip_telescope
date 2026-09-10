@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import dataclasses
 import datetime
 import json
 import pathlib
@@ -41,10 +42,56 @@ FILE_CACHE = "RDAP-CACHE.jsonl"
 TEXT_USER_AGENT = "ip_telescope/0.1 (block enrichment; contact via project owner)"
 COUNT_WORKER_DEFAULT = 8
 VALUE_RATE_DEFAULT = 5.0
-SECONDS_TIMEOUT_DEFAULT = 30.0
+SECONDS_TIMEOUT_DEFAULT = 15.0
 COUNT_RETRY = 3
 SECONDS_RETRY_DEFAULT = 30.0
+SECONDS_RETRY_MAX = 120.0
 COUNT_PROGRESS = 500
+COUNT_SERVICE_FAILURE = 3
+
+
+class ServiceGate:
+    """Stop asking a registry service that keeps failing.
+
+    A registry endpoint can be unreachable while the others answer (AFRINIC
+    was, on 2026-09-10). Without a gate, every block behind that service
+    costs the full retry budget and the run stalls for hours. The blocks are
+    recorded as unanswered instead, and a later run tries them again
+    because an unanswered address is not treated as cached.
+    """
+
+    def __init__(self, count_limit: int) -> None:
+        self.count_limit = count_limit
+        self.lock = threading.Lock()
+        self.dict_count: dict[str, int] = {}
+        self.dict_reason: dict[str, str] = {}
+        self.set_blocked: set[str] = set()
+
+    def is_blocked(self, text_service: str) -> bool:
+        """Return True when the service is closed."""
+        with self.lock:
+            return text_service in self.set_blocked
+
+    def reason_get(self, text_service: str) -> str:
+        """Return why the service was closed."""
+        with self.lock:
+            return self.dict_reason.get(text_service, "unknown")
+
+    def record(self, text_service: str, flag_ok: bool, text_reason: str) -> None:
+        """Record one outcome, closing the service after too many failures."""
+        with self.lock:
+            if flag_ok:
+                self.dict_count.pop(text_service, None)
+                return
+            count_failure = self.dict_count.get(text_service, 0) + 1
+            self.dict_count[text_service] = count_failure
+            self.dict_reason[text_service] = text_reason
+            if self.count_limit <= count_failure and text_service not in self.set_blocked:
+                self.set_blocked.add(text_service)
+                print(
+                    f"enrich: service closed after {count_failure} failures "
+                    f"({text_reason}): {text_service}"
+                )
 
 
 class RateLimiter:
@@ -115,6 +162,7 @@ def rdap_query(
         "fetched_at": moment_now,
         "document": None,
         "error": None,
+        "retry_after": None,
     }
     request_rdap = urllib.request.Request(
         text_url,
@@ -127,6 +175,13 @@ def rdap_query(
     except urllib.error.HTTPError as error_http:
         record_answer["status"] = error_http.code
         record_answer["error"] = f"HTTPError: {error_http.code}"
+        # A 429 or 503 carries the wait the registry wants; honor it.
+        text_retry = error_http.headers.get("Retry-After") if error_http.headers else None
+        if text_retry:
+            try:
+                record_answer["retry_after"] = float(text_retry)
+            except ValueError:
+                record_answer["retry_after"] = None
     except (urllib.error.URLError, TimeoutError, OSError) as error_url:
         record_answer["error"] = f"{type(error_url).__name__}: {error_url}"[:256]
     except json.JSONDecodeError as error_json:
@@ -134,27 +189,78 @@ def rdap_query(
     return record_answer
 
 
+@dataclasses.dataclass(slots=True)
+class EnrichOptions:
+    """Everything one enrichment run needs."""
+
+    path_directory_data: pathlib.Path
+    path_directory_raw: pathlib.Path
+    count_worker: int
+    count_retry: int
+    count_progress: int
+    seconds_retry: float
+    seconds_timeout: float
+    value_rate: float
+    count_limit: int | None
+    flag_refresh: bool
+    text_service_force: str | None
+
+
 def rdap_query_retry(
     text_service: str,
     text_address: str,
-    value_timeout: float,
+    options: EnrichOptions,
     limiter_rate: RateLimiter,
 ) -> dict:
     """Query RDAP, retrying a rate limit or a transport failure."""
     record_answer = {}
     count_try = 0
-    while count_try < COUNT_RETRY:
+    while count_try < options.count_retry:
         count_try += 1
         limiter_rate.wait()
-        record_answer = rdap_query(text_service, text_address, value_timeout)
+        record_answer = rdap_query(text_service, text_address, options.seconds_timeout)
         text_status = record_answer["status"]
         # A real answer is anything but a rate limit or a transport failure:
         # 404 means the registry holds no object for the address, which is
         # itself worth recording.
         if text_status not in (429, 503, None):
             return record_answer
-        if count_try < COUNT_RETRY:
-            time.sleep(SECONDS_RETRY_DEFAULT)
+        if count_try < options.count_retry:
+            # The registry may state its own wait; a registry that is asked
+            # too often answers 429 and means it.
+            seconds_wait = record_answer.get("retry_after") or options.seconds_retry
+            time.sleep(min(seconds_wait, SECONDS_RETRY_MAX))
+    return record_answer
+
+
+def rdap_query_gated(
+    text_service: str,
+    text_address: str,
+    options: EnrichOptions,
+    limiter_rate: RateLimiter,
+    gate_service: ServiceGate,
+) -> dict:
+    """Query RDAP unless the service is closed, and report the outcome."""
+    if gate_service.is_blocked(text_service):
+        return {
+            "address": text_address,
+            "service": text_service,
+            "status": None,
+            "fetched_at": datetime.datetime.now(datetime.timezone.utc).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            ),
+            "document": None,
+            "error": f"service closed: {gate_service.reason_get(text_service)}",
+        }
+    record_answer = rdap_query_retry(text_service, text_address, options, limiter_rate)
+    text_status = record_answer["status"]
+    # A rate limit counts against the service: three in a row mean this run
+    # should stop asking, and a later, slower run can try again. The blocks
+    # are recorded without a status, so they are not treated as answered.
+    if 429 == text_status or 503 == text_status:
+        gate_service.record(text_service, False, f"rate limited with {text_status}")
+    else:
+        gate_service.record(text_service, text_status is not None, "no answer")
     return record_answer
 
 
@@ -191,7 +297,12 @@ def summary_read(document_rdap: dict | None) -> dict:
 
 
 def cache_read(path_directory_raw: pathlib.Path) -> dict[str, dict]:
-    """Return the cached RDAP answers, keyed by address."""
+    """Return the cached RDAP answers, keyed by address.
+
+    Only records that carry a real answer count as cached. A record without
+    a status is a transport failure, and a record with 429 or 503 is a rate
+    limit; neither is an answer, so a later run tries that address again.
+    """
     path_file = path_directory_raw / FILE_CACHE
     dict_cache: dict[str, dict] = {}
     if not path_file.is_file():
@@ -205,52 +316,49 @@ def cache_read(path_directory_raw: pathlib.Path) -> dict[str, dict]:
                 record_answer = json.loads(text_line)
             except json.JSONDecodeError:
                 continue
+            if record_answer.get("status") in (None, 429, 503):
+                dict_cache.pop(record_answer["address"], None)
+                continue
             dict_cache[record_answer["address"]] = record_answer
     return dict_cache
 
 
-def enrich(
-    path_directory_data: pathlib.Path,
-    path_directory_raw: pathlib.Path,
-    count_worker: int,
-    value_rate: float,
-    value_timeout: float,
-    count_limit: int | None,
-    flag_refresh: bool,
-    text_service_force: str | None,
-) -> dict[str, int]:
+def enrich(options: EnrichOptions) -> dict[str, int]:
     """Add RDAP metadata to every block and return the answer counts."""
-    path_block = path_directory_data / "02_ip_block.json"
+    path_block = options.path_directory_data / "02_ip_block.json"
     if not path_block.is_file():
         raise FileNotFoundError(f"missing block file: {path_block}")
     with open(path_block, "r", encoding="utf-8") as file_block:
         list_block = json.load(file_block)
 
+    path_file_cache = options.path_directory_raw / FILE_CACHE
     list_service = (
-        [] if text_service_force else bootstrap_service_read(path_directory_raw)
+        [] if options.text_service_force else bootstrap_service_read(options.path_directory_raw)
     )
-    dict_cache = {} if flag_refresh else cache_read(path_directory_raw)
-    limiter_rate = RateLimiter(value_rate)
+    dict_cache = {} if options.flag_refresh else cache_read(options.path_directory_raw)
+    limiter_rate = RateLimiter(options.value_rate)
+    gate_service = ServiceGate(COUNT_SERVICE_FAILURE)
 
     list_target = [
         document_block
         for document_block in list_block
         if document_block["rir_record"]["start"] not in dict_cache
     ]
-    if count_limit is not None:
-        list_target = list_target[:count_limit]
+    if options.count_limit is not None:
+        list_target = list_target[: options.count_limit]
     list_address = [document_block["rir_record"]["start"] for document_block in list_target]
     print(f"enrich: blocks={len(list_block)} cached={len(dict_cache)} query={len(list_address)}")
 
     dict_new: dict[str, dict] = {}
-    path_file_cache = path_directory_raw / FILE_CACHE
-    path_directory_raw.mkdir(parents=True, exist_ok=True)
+    options.path_directory_raw.mkdir(parents=True, exist_ok=True)
     with open(path_file_cache, "a", encoding="utf-8") as file_cache:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=count_worker) as executor_pool:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=options.count_worker
+        ) as executor_pool:
             dict_future = {}
             for text_address in list_address:
                 text_service = service_choose(
-                    address_value(text_address), list_service, text_service_force
+                    address_value(text_address), list_service, options.text_service_force
                 )
                 if text_service is None:
                     record_answer = {
@@ -266,7 +374,12 @@ def enrich(
                     continue
                 dict_future[
                     executor_pool.submit(
-                        rdap_query_retry, text_service, text_address, value_timeout, limiter_rate
+                        rdap_query_gated,
+                        text_service,
+                        text_address,
+                        options,
+                        limiter_rate,
+                        gate_service,
                     )
                 ] = text_address
             count_done = 0
@@ -276,7 +389,7 @@ def enrich(
                 file_cache.write(json.dumps(record_answer, ensure_ascii=True) + "\n")
                 file_cache.flush()
                 count_done += 1
-                if 0 == count_done % COUNT_PROGRESS:
+                if 0 == count_done % options.count_progress:
                     print(f"enrich: queried {count_done}/{len(list_address)}")
 
     dict_cache.update(dict_new)
@@ -302,7 +415,10 @@ def enrich(
         json.dump(list_block, file_block, indent=4, ensure_ascii=True)
         file_block.write("\n")
 
-    return {"block": len(list_block), "queried": len(list_address), **count_status}
+    dict_result = {"block": len(list_block), "queried": len(list_address), **count_status}
+    if gate_service.set_blocked:
+        dict_result["service_closed"] = ",".join(sorted(gate_service.set_blocked))
+    return dict_result
 
 
 def address_value(text_address: str) -> int:
@@ -331,6 +447,8 @@ def main(arguments: list[str]) -> int:
     parser_arguments.add_argument("--thread", type=int, default=COUNT_WORKER_DEFAULT)
     parser_arguments.add_argument("--rate", type=float, default=VALUE_RATE_DEFAULT)
     parser_arguments.add_argument("--timeout", type=float, default=SECONDS_TIMEOUT_DEFAULT)
+    parser_arguments.add_argument("--retry", type=int, default=COUNT_RETRY)
+    parser_arguments.add_argument("--retry-wait", type=float, default=SECONDS_RETRY_DEFAULT)
     parser_arguments.add_argument("--limit", type=int, default=None)
     parser_arguments.add_argument(
         "--service",
@@ -342,17 +460,22 @@ def main(arguments: list[str]) -> int:
     )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
+    options = EnrichOptions(
+        path_directory_data=arguments_parsed.data_directory,
+        path_directory_raw=arguments_parsed.raw_directory,
+        count_worker=arguments_parsed.thread,
+        count_retry=arguments_parsed.retry,
+        count_progress=COUNT_PROGRESS,
+        seconds_retry=arguments_parsed.retry_wait,
+        seconds_timeout=arguments_parsed.timeout,
+        value_rate=arguments_parsed.rate,
+        count_limit=arguments_parsed.limit,
+        flag_refresh=arguments_parsed.refresh,
+        text_service_force=arguments_parsed.service,
+    )
+
     try:
-        dict_count = enrich(
-            arguments_parsed.data_directory,
-            arguments_parsed.raw_directory,
-            arguments_parsed.thread,
-            arguments_parsed.rate,
-            arguments_parsed.timeout,
-            arguments_parsed.limit,
-            arguments_parsed.refresh,
-            arguments_parsed.service,
-        )
+        dict_count = enrich(options)
     except (FileNotFoundError, ValueError) as error_enrich:
         print(f"enrich: FAIL: {error_enrich}", file=sys.stderr)
         return 1

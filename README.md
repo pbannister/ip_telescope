@@ -86,7 +86,7 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 | File | Contents | Count | Size |
 | --- | --- | --- | --- |
 | `data/01_ip_probe.json` | every routable four-prime-octet address | 7,400,808 | 147 MB |
-| `data/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 5.6 MB + RDAP |
+| `data/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 165 MB |
 | `data/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
 | `data/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
 | `data/05_ip_probe_http.json` | one HTTP observation per phase 3 target | 49,572 | 18 MB |
@@ -95,7 +95,10 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 - Of the 9,200 probe-bearing blocks, 8,616 are operator-held (`allocated` or `assigned`) and 584 are not (`available` or `reserved`).
 - Every probe falls inside some RIR record; no probe is entirely absent from the registry files.
 - `data/03_ip_probe.json` is large because it repeats the mapping that `data/01` plus `data/02` already imply; it exists so that later phases can stream one file.
+- `data/02_ip_block.json` is large because each block carries its RDAP document verbatim, as the RIR returned it; the delegation fields alone occupy about 6 MB.
 - The 2026-09-10 phase 3 pass over the 49,572 unheld probes answered 99 times, refused 6 times, reset once, and timed out 49,466 times. Every answer sat in a block the registry calls `reserved`; 582 of the 584 unheld blocks were silent.
+- The 2026-09-10 RDAP enrichment answered for 8,556 of the 9,200 blocks and returned `404` (no object) for 27. It left 617 unanswered: `rdap.afrinic.net` was unreachable from the owning host, and the other registries answered `429` once the run pressed them. An unanswered address is not treated as answered, so a later run asks again.
+- The loudest answer, `23.191.149.0/24`, sits inside ARIN's own reserved space: RDAP records no operator for the block, only its parent `23.0.0.0/8`, which ARIN holds itself, yet 98 probes there answered with an nginx `301`. The refusing addresses in `199.47.160.0/21` sit in a block ARIN has no RDAP object for at all.
 
 ## Running the Project
 

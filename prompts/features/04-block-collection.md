@@ -43,6 +43,8 @@ populations:
 * Every RDAP answer must be stored verbatim under an `rdap` key of the block, next to a summary of handle, name, type, parent handle, start and end address, country, organization, and events.
 * Every answer must be cached in `data/raw/RDAP-CACHE.jsonl`, so a repeated run does not ask a registry twice.
 * An answer of `404` must be recorded as an answer, not treated as a failure: it states that the registry holds no object for that address.
+* A transport failure must not be recorded as an answer: the address must be asked again by a later run.
+* A registry service that fails a configured number of times in a row must be closed for the rest of the run, so that one unreachable endpoint cannot stall the whole collection; its blocks are recorded as unanswered and are asked again later.
 * Requests must be rate limited across threads, and a rate limit or transport failure must be retried a bounded number of times.
 * Enrichment must be idempotent: running it twice must leave the block file unchanged.
 
@@ -61,6 +63,10 @@ populations:
   `--refresh` ignores the cache.
 * `--rate` sets the requests per second across all threads, and `--thread`
   sets the number of concurrent requests.
+* `--retry` and `--retry-wait` bound the retries of a rate limit or a
+  transport failure.
+* A closed service is reported as `service_closed` in the run summary, and
+  its blocks carry the error `service closed: too many consecutive failures`.
 * Progress is reported every 500 answered blocks.
 * `data/raw/RDAP-CACHE.jsonl` holds one JSON record per answered address and
   is the record of what each registry was asked.
