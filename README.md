@@ -1,8 +1,36 @@
 # ip_telescope: a telescope pointed at the quiet addresses
 
-> Mail addressed to another star leaves the post office faster than mail
-> addressed across town. What if the reply is already waiting, addressed to
-> an address that should not exist?
+## Preamble
+
+How would you uncover an alien postoffice?
+
+There is a premise in science fiction that an alien race might gate first contact behind a proof of intelligence or capability. 
+Arthur C. Clarke wrote stories where humans uncovered a probe buried on the Moon. 
+Discovery of the probe meant humans had advanced enough to leave the Earth, and detect a buried probe on the Moon.
+
+A more humorous story noted that (at the time) postal mail was faster across the country than local delivery. 
+The character in the story addressed a letter to another star, which vanished instantly - and became the starting point for first contact.
+
+In present, we might imagine an alien presence on the web, waiting to be discovered. 
+What sort of clue or anomalous behavior might be a similar proof of intelligence?
+
+Let us compound the speculation.
+What if the speculation of old Greek philosophers were true?
+What if reality was more than what we can sense?
+What if Quantum Mechanics is a hint not an answer?
+What if reality is a fractal web, not a continuous line?
+
+We might be looking for hidden-in-plain sight proof of other folk, not us.
+
+A smart alien probe might connect to the web, and wait to be found.
+That presence might be very ... alien.
+
+If reality is fractal, then perhaps there are intra-space routers on the internet.
+Those routers (and the addresses behind) would be less alien, just unexpected.
+
+(To be clear, I do not *believe* in any of this. But will look, to be sure.)
+
+## Start
 
 This project collects information about IPv4 addresses that are *curious*:
 addresses whose answers, or whose silence, do not match what the registry
