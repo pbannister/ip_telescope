@@ -19,9 +19,19 @@
           belongs in the phase 4 battery or becomes its own collection step.
     * [ ] decide whether Site B warrants a hosting-abuse report to the
           announcing operator, and whether the project does that at all.
-    * [ ] obtain a second vantage point on another continent: the light-speed
-          test is only decisive when the same floor is seen from two places,
-          because a terrestrial server answers a nearby observer faster.
+    * [ ] second vantage point (**deferred; do not use it yet**). Owner note,
+          2026-09-11: the webhost has servers in Oregon and can be reached
+          over SSH. It sits on the same coast as the project host, which
+          reports `America/Los_Angeles`, and that is the wrong end of the
+          test: for a geosynchronous-band candidate two observers on one
+          coast differ by a few milliseconds, inside jitter, while observers
+          on different continents differ by tens of milliseconds. It may
+          still be usable for the lunar floor, where the whole Earth spans at
+          most 42 ms of round trip — and two observers a thousand kilometres
+          apart about 7 ms — against a 2,564 ms quantum. Do not probe from it,
+          and do not treat it as the decisive second observer.
+    * [ ] the strong version of that test still needs an observer on another
+          continent: Europe or Asia, at a known distance.
     * [ ] run the far-field test deliberately: one pass with a long wait —
           ten seconds reaches Sun–Earth L2 — on a sample of addresses, since
           the ordinary budget records everything past it as a timeout.

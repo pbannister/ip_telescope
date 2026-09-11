@@ -186,10 +186,17 @@ decides nothing. Three further conditions must hold together:
   A terrestrial long-haul path is never that steady.
 - **Independence from the observer's position.** This is the decisive test.
   A terrestrial server answers a nearby observer faster than a distant one.
-  A lunar responder does not care: moving an observer across the Earth
-  changes a lunar round trip by at most 1.6 percent, about 41 ms, while the
-  same move changes a terrestrial round trip by tens of milliseconds. Two
-  widely separated vantage points seeing the same floor is the signature.
+  A lunar responder does not care: moving an observer from beneath it to the
+  far side of the Earth changes a lunar round trip by at most the Earth's
+  radius each way, about 42 ms, or 1.6 percent of the quantum. Two widely
+  separated vantage points seeing the same floor is the signature.
+  The size of the vantage can be counted, which decides what a given second
+  observer is worth. Two observers a thousand kilometres apart can differ by
+  at most about 7 ms of lunar round trip, against tens of milliseconds over a
+  terrestrial path: discriminating for the lunar floor. Two observers on the
+  same coast differ by a few milliseconds either way, which is inside jitter
+  and decides nothing in the geosynchronous band, where the quantum is only
+  239 ms to begin with.
 
 **A timeout is not evidence of absence.** Anything beyond the budget — L2 at
 ten seconds, and anything slower — is recorded as a timeout, which is exactly
@@ -317,7 +324,12 @@ what is there.
   jitter and vantage tests do the deciding.
 - Where does the second vantage point come from? A second host on another
   continent, a RIPE Atlas measurement, or a rented probe. The project has one
-  host today, and the decisive test needs two.
+  host today, on the US west coast, and the decisive test needs an observer
+  far from it. **Owner note, 2026-09-11**: the webhost has servers in Oregon
+  and can be reached over SSH. It is recorded as a deferred option — not to
+  be used yet, and weak for the geosynchronous band because it shares the
+  project host's coast. Its plausible use is the lunar floor, where the
+  geographic penalty is small next to the quantum.
 - Should the far field get its own pass with a deliberately long wait — ten
   seconds would reach L2 — on a sample of addresses, given that the ordinary
   budget cannot see past it?

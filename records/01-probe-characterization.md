@@ -197,6 +197,16 @@ the reset source. A repeat pass would show whether the reset set moves.
 - Map the live ranges exactly, rather than by sample, for Sites A and B.
 - Decide whether reviewing the routing layer belongs in phase 4 or becomes a
   separate collection step.
+- **Second vantage point (deferred; owner note, 2026-09-11).** The owner's
+  webhost has servers in Oregon and is reachable over SSH. It is not to be
+  used, and it is the wrong end of the test for the geosynchronous band,
+  because it shares the project host's coast — the project host reports
+  `America/Los_Angeles`, and two observers on one coast differ by a few
+  milliseconds either way, which is inside jitter. It may still be usable for
+  the lunar floor: two observers a thousand kilometres apart can differ by at
+  most about 7 ms of lunar round trip, against tens of milliseconds over a
+  terrestrial path, and the quantum is 2,564 ms. The strong version of the
+  test still wants an observer on another continent.
 
 ## Addendum: the light-speed test, and a second pass — 2026-09-11
 
