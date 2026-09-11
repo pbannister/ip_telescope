@@ -151,4 +151,4 @@ The reasoning behind each, kept for the record:
 - the leak-gate boundary fix in the homelab: `cd97427` fix: do not read a
   public address as a private one in the leak gate
 - the regeneration, the field drops, the stylesheet fix, and the fourth
-  explanation's reframing: `pending`
+  explanation's reframing: `12f56e8`
