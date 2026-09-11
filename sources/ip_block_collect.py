@@ -80,10 +80,18 @@ class BlockRecord:
         return self.text_status in STATUS_ASSIGNED
 
     def prefix_text(self) -> str | None:
-        """Return the CIDR prefix when the size is a power of two."""
+        """Return the CIDR prefix, when the block really is one.
+
+        A power-of-two size is not enough: the start address must also be
+        aligned to that size. A record of 1,048,576 addresses starting at
+        13.168.0.0 is not 13.168.0.0/12, because that string names
+        13.160.0.0-13.175.255.255, a different range. Such a block is
+        described by its start and end addresses instead.
+        """
         if 0 == self.value_size & (self.value_size - 1):
-            value_bits = self.value_size.bit_length() - 1
-            return f"{self.text_start}/{32 - value_bits}"
+            if 0 == self.value_start & (self.value_size - 1):
+                value_bits = self.value_size.bit_length() - 1
+                return f"{self.text_start}/{32 - value_bits}"
         return None
 
     def opaque_id_text(self) -> str:

@@ -107,8 +107,12 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 - `make enrich` adds the RIR RDAP record to every collected block, caching each answer in `dataflow.out/raw/RDAP-CACHE.jsonl`. Use `--limit N` for a trial; the lookup is rate limited by `--rate` requests per second.
 - `make observe` runs phase 3 over `dataflow.out/04_ip_probe.json`. Use `--limit` for a trial run.
 - `make characterize` runs phase 4 over the phase 3 anomalies: the probe battery, plus non-prime control addresses sampled from the same blocks. `--control-count N` sets the sample size, and `--limit N` bounds a trial.
+- `make map` builds the browsable block map into `site.out/`.
+- `python3 sources/ip_block_audit.py` checks every block for fields that
+  contradict the fields they came from; `--repair` rewrites the ones with a
+  single correct value.
 - `make test` runs every test; the phase tests are portable and need no network.
-- `make site` builds the project pages.
+- `make site` builds the project pages, including the map.
 
 ## Characterizing an Anomaly
 
@@ -203,6 +207,11 @@ repository's generated `site.out/` tree and deploys it:
 - `dashboard.html` — the work-product counts.
 - `findings.html` — **the observed `ip_probe` results**, with the evidence and
   the verdicts for each site that answered.
+- `blocks.html` — **the browsable map of the collected blocks**: an index with
+  the irregularity classes, then one page per first octet listing every block
+  in address order with its status, RDAP state, name, type, organization, and
+  the gaps where no delegation record covers the space, and one page per block
+  with all of its data. Built by `make map`.
 - `todo.html`, `prompts.html`, `documents.html`, `records.html` — the
   condensed work plan, rules, knowledge, and records, each with the full text
   of every file behind it.

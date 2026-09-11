@@ -22,7 +22,11 @@
 #		         in the same blocks, then write
 #		         dataflow.out/06_ip_probe_characterize.json)
 #		build:  sh scripts/site-build.sh
-#		site:   sh scripts/site-build.sh + sh scripts/site-condense.sh
+#		map:    sh scripts/06-block-map.sh
+#		        (the browsable block map: site.out/blocks.html, one page
+#		        per first octet, and one page per block)
+#		site:   sh scripts/site-build.sh + sh scripts/06-block-map.sh +
+#		        sh scripts/site-condense.sh
 #		        (the standard page set; see prompts/features/02-project-pages.md)
 #		clean:  manual by design; see the clean rule below.
 #		test:   npm test
@@ -84,8 +88,12 @@ characterize: $(FILE_06_PROBES_CHARACTERIZED)
 build:
 	sh scripts/site-build.sh
 
+map:
+	sh scripts/06-block-map.sh
+
 site:
 	sh scripts/site-build.sh
+	sh scripts/06-block-map.sh
 	sh scripts/site-condense.sh
 
 clean:
@@ -107,4 +115,4 @@ deploy:
 install:
 	@echo '==== No install yet defined'
 
-.PHONY: all probes blocks enrich observe characterize build site clean test deploy install
+.PHONY: all probes blocks enrich observe characterize build map site clean test deploy install
