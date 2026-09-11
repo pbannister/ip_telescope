@@ -217,7 +217,7 @@ def main(arguments: list[str]) -> int:
     parser_arguments.add_argument(
         "--data-directory",
         type=pathlib.Path,
-        default=PATH_REPOSITORY_ROOT / "data",
+        default=PATH_REPOSITORY_ROOT / "dataflow.out",
         help="directory holding 04_ip_probe.json and receiving 05_ip_probe_http.json",
     )
     parser_arguments.add_argument(
@@ -240,6 +240,11 @@ def main(arguments: list[str]) -> int:
     parser_arguments.add_argument(
         "--limit", type=int, default=None, help="observe at most this many targets"
     )
+    parser_arguments.add_argument(
+        "--refresh",
+        action="store_true",
+        help="observe again even when the observation file already exists",
+    )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     path_probe = (
@@ -253,6 +258,26 @@ def main(arguments: list[str]) -> int:
     if not path_probe.is_file():
         print(f"observe: FAIL: missing target file: {path_probe}", file=sys.stderr)
         return 1
+
+    # A pass over every target costs the better part of half an hour of
+    # network time, so an existing observation file is kept as it stands.
+    # Pass --refresh to observe again.
+    if not arguments_parsed.refresh and path_output.is_file():
+        try:
+            with open(path_output, "r", encoding="utf-8") as file_output:
+                document_reuse = json.load(file_output)
+        except (OSError, json.JSONDecodeError) as error_reuse:
+            print(f"reuse: {path_output} unreadable: {error_reuse}")
+            print("reuse: observing again")
+        else:
+            dict_parameter = document_reuse.get("parameters", {})
+            print(
+                f"reuse: {path_output} "
+                f"observed_at={document_reuse.get('observed_at')} "
+                f"target={dict_parameter.get('target_count')} "
+                f"observed={len(document_reuse.get('observations', []))}"
+            )
+            return 0
 
     dict_count = observe(
         path_probe,

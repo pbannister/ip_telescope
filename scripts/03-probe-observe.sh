@@ -12,6 +12,6 @@ set -eu
 DIRECTORY_SCRIPT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPOSITORY_ROOT=$(CDPATH= cd -- "$DIRECTORY_SCRIPT/.." && pwd)
 
-DIRECTORY_DATA="$REPOSITORY_ROOT/data"
+DIRECTORY_DATA="$REPOSITORY_ROOT/dataflow.out"
 
 python3 "$REPOSITORY_ROOT/sources/ip_probe_observe.py" --data-directory "$DIRECTORY_DATA" "$@"

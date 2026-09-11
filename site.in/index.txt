@@ -44,12 +44,15 @@ of those blocks (<code>199.47.160.0/21</code>) has no RDAP object at all.
 The RDAP enrichment of the 9,200 blocks answered for 8,556 and returned
 <code>404</code> for 27; 617 were left unanswered because
 <code>rdap.afrinic.net</code> was unreachable and the other registries rate
-limited the run. Those addresses are not treated as answered, so a later run
-asks again.
+limited the run. Those addresses are not treated as answered, so
+<code>make enrich</code> with <code>--retry-failed</code> asks again.
 </p>
 
 <p>
 Run <code>make probes</code>, <code>make blocks</code>,
 <code>make enrich</code>, and <code>make observe</code> to reproduce each
-phase; see <code>README.md</code> and <code>PHASES.md</code>.
+phase; see <code>README.md</code> and <code>PHASES.md</code>. Every work
+product that already exists is kept rather than rebuilt: the phase 3 pass
+costs nineteen minutes of live probing, so <code>make all</code> with
+everything present finishes in seconds and writes nothing.
 </p>

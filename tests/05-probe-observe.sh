@@ -95,7 +95,8 @@ assert False is observation["body_truncated"]
 assert 0 <= observation["elapsed_ms"]
 PYTHON_CHECK
 
-# The refused path: the same port with the server gone.
+# The refused path: the same port with the server gone. This is a deliberate
+# second observation, so it must ask past the keep-the-existing-file rule.
 kill "$PID_SERVER" 2>/dev/null || true
 wait "$PID_SERVER" 2>/dev/null || true
 PID_SERVER=''
@@ -103,7 +104,7 @@ PID_SERVER=''
 if ! output_observe=$(python3 "$PROGRAM_OBSERVE" \
     --data-directory "$DIRECTORY_DATA" \
     --port "$PORT_SERVER" \
-    --timeout 2); then
+    --timeout 2 --refresh); then
     fail "observer failed on the refused path: $output_observe"
 fi
 

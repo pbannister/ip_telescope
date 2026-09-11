@@ -12,7 +12,7 @@ set -eu
 DIRECTORY_SCRIPT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPOSITORY_ROOT=$(CDPATH= cd -- "$DIRECTORY_SCRIPT/.." && pwd)
 
-DIRECTORY_DATA="$REPOSITORY_ROOT/data"
+DIRECTORY_DATA="$REPOSITORY_ROOT/dataflow.out"
 DIRECTORY_RAW="$REPOSITORY_ROOT/dataflow.out/raw"
 
 python3 "$REPOSITORY_ROOT/sources/ip_block_enrich.py" \

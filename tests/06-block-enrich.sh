@@ -180,7 +180,7 @@ esac
 # A service that never answers must not stall the run, and its failures must
 # not be cached as if they were answers.
 DIRECTORY_DEAD="$DIRECTORY_TEST/dead"
-mkdir -p "$DIRECTORY_DEAD/data" "$DIRECTORY_DEAD/raw"
+mkdir -p "$DIRECTORY_DEAD/dataflow.out" "$DIRECTORY_DEAD/raw"
 
 python3 - "$DIRECTORY_DEAD/dataflow.out/02_ip_block.json" <<'PYTHON_FIXTURE'
 import json
@@ -223,7 +223,7 @@ socket_probe.close()
 ')
 
 if ! output_dead=$(python3 "$PROGRAM_ENRICH" \
-    --data-directory "$DIRECTORY_DEAD/data" \
+    --data-directory "$DIRECTORY_DEAD/dataflow.out" \
     --raw-directory "$DIRECTORY_DEAD/raw" \
     --service "http://127.0.0.1:$PORT_DEAD" \
     --rate 0 --thread 4 --retry 1 --retry-wait 0 --timeout 2); then
@@ -246,17 +246,31 @@ for document_block in list_block:
     assert {} == document_block["rdap"]["summary"]
 PYTHON_CHECK
 
-# The failures were not answers, so the next run must ask again.
-if ! output_retry=$(python3 "$PROGRAM_ENRICH" \
-    --data-directory "$DIRECTORY_DEAD/data" \
+# A default run leaves the failed blocks as they stand: a work product is
+# not rewritten behind the owner's back.
+if ! output_keep=$(python3 "$PROGRAM_ENRICH" \
+    --data-directory "$DIRECTORY_DEAD/dataflow.out" \
     --raw-directory "$DIRECTORY_DEAD/raw" \
     --service "http://127.0.0.1:$PORT_DEAD" \
     --rate 0 --thread 4 --retry 1 --retry-wait 0 --timeout 2); then
+    fail "enricher failed on the keep run: $output_keep"
+fi
+case "$output_keep" in
+    *'enrich: reuse=yes'*) ;;
+    *) fail "a default run rewrote the block file: $output_keep" ;;
+esac
+
+# Asking again is deliberate, and only --retry-failed does it.
+if ! output_retry=$(python3 "$PROGRAM_ENRICH" \
+    --data-directory "$DIRECTORY_DEAD/dataflow.out" \
+    --raw-directory "$DIRECTORY_DEAD/raw" \
+    --service "http://127.0.0.1:$PORT_DEAD" \
+    --rate 0 --thread 4 --retry 1 --retry-wait 0 --timeout 2 --retry-failed); then
     fail "enricher failed on the retry run: $output_retry"
 fi
 case "$output_retry" in
-    *'enrich: queried=0'*) fail "a transport failure was cached as an answer" ;;
-    *) ;;
+    *'query=5'*) ;;
+    *) fail "--retry-failed did not ask the failed blocks again: $output_retry" ;;
 esac
 
 echo '06-block-enrich: ok'

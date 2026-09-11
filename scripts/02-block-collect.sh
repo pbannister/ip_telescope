@@ -17,7 +17,7 @@ DIRECTORY_SCRIPT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPOSITORY_ROOT=$(CDPATH= cd -- "$DIRECTORY_SCRIPT/.." && pwd)
 
 DIRECTORY_RAW="$REPOSITORY_ROOT/dataflow.out/raw"
-DIRECTORY_DATA="$REPOSITORY_ROOT/data"
+DIRECTORY_DATA="$REPOSITORY_ROOT/dataflow.out"
 LIST_REGISTRY='afrinic apnic arin lacnic ripencc'
 
 url_delegation_print() {

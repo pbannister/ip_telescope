@@ -216,6 +216,7 @@ class EnrichOptions:
     value_rate: float
     count_limit: int | None
     flag_refresh: bool
+    flag_retry_failed: bool
     text_service_force: str | None
 
 
@@ -356,18 +357,33 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
     limiter_rate = RateLimiter(options.value_rate)
     gate_service = ServiceGate(COUNT_SERVICE_FAILURE)
 
-    list_target = [
-        document_block
-        for document_block in list_block
-        if document_block["rir_record"]["start"] not in dict_cache
-    ]
+    # Which blocks need attention:
+    #   --refresh        every block, asking the registries again
+    #   --retry-failed   blocks whose last answer was a failure or a rate limit
+    #   default          only blocks that carry no RDAP record at all
+    # A block already annotated is left alone, so a default run over finished
+    # work asks nothing and writes nothing.
+    list_target = []
+    for document_block in list_block:
+        document_rdap = document_block.get("rdap")
+        if options.flag_refresh or document_rdap is None:
+            list_target.append(document_block)
+        elif options.flag_retry_failed and document_rdap.get("status") in (
+            None,
+            429,
+            503,
+        ):
+            list_target.append(document_block)
     if options.count_limit is not None:
         list_target = list_target[: options.count_limit]
     list_address = [
-        document_block["rir_record"]["start"] for document_block in list_target
+        document_block["rir_record"]["start"]
+        for document_block in list_target
+        if document_block["rir_record"]["start"] not in dict_cache
     ]
     print(
-        f"enrich: blocks={len(list_block)} cached={len(dict_cache)} query={len(list_address)}"
+        f"enrich: blocks={len(list_block)} cached={len(dict_cache)} "
+        f"target={len(list_target)} query={len(list_address)}"
     )
 
     dict_new: dict[str, dict] = {}
@@ -419,11 +435,14 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
 
     dict_cache.update(dict_new)
     count_status: dict[str, int] = {}
+    count_applied = 0
     for document_block in list_block:
         text_address = document_block["rir_record"]["start"]
         record_answer = dict_cache.get(text_address)
         if record_answer is None:
             continue
+        if "rdap" not in document_block:
+            count_applied += 1
         document_block["rdap"] = {
             "query": text_address,
             "service": record_answer["service"],
@@ -436,6 +455,16 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
         text_key = str(record_answer["status"]) if record_answer["status"] else "error"
         count_status[text_key] = count_status.get(text_key, 0) + 1
 
+    # Nothing was asked and nothing new was applied, so the block file already
+    # holds this answer set. Rewriting 165 MB to change nothing is waste.
+    if not options.flag_refresh and 0 == len(dict_new) and 0 == count_applied:
+        return {
+            "reuse": "yes",
+            "block": len(list_block),
+            "queried": 0,
+            **count_status,
+        }
+
     with open(path_block, "w", encoding="utf-8") as file_block:
         json.dump(list_block, file_block, indent=4, ensure_ascii=True)
         file_block.write("\n")
@@ -443,6 +472,7 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
     dict_result = {
         "block": len(list_block),
         "queried": len(list_address),
+        "applied": count_applied,
         **count_status,
     }
     if gate_service.set_blocked:
@@ -466,12 +496,12 @@ def main(arguments: list[str]) -> int:
     parser_arguments.add_argument(
         "--data-directory",
         type=pathlib.Path,
-        default=PATH_REPOSITORY_ROOT / "data",
+        default=PATH_REPOSITORY_ROOT / "dataflow.out",
     )
     parser_arguments.add_argument(
         "--raw-directory",
         type=pathlib.Path,
-        default=PATH_REPOSITORY_ROOT / "data" / "raw",
+        default=PATH_REPOSITORY_ROOT / "dataflow.out" / "raw",
     )
     parser_arguments.add_argument("--thread", type=int, default=COUNT_WORKER_DEFAULT)
     parser_arguments.add_argument("--rate", type=float, default=VALUE_RATE_DEFAULT)
@@ -493,6 +523,11 @@ def main(arguments: list[str]) -> int:
         action="store_true",
         help="ignore the cache and query every block again",
     )
+    parser_arguments.add_argument(
+        "--retry-failed",
+        action="store_true",
+        help="ask again for blocks whose last answer was a failure or a rate limit",
+    )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     options = EnrichOptions(
@@ -506,6 +541,7 @@ def main(arguments: list[str]) -> int:
         value_rate=arguments_parsed.rate,
         count_limit=arguments_parsed.limit,
         flag_refresh=arguments_parsed.refresh,
+        flag_retry_failed=arguments_parsed.retry_failed,
         text_service_force=arguments_parsed.service,
     )
 

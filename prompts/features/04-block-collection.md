@@ -35,6 +35,10 @@ populations:
 * Collection must be reproducible: the same delegation files and the same
   probe list produce the same outputs.
 * Collection must report the block and probe counts it wrote.
+* The three phase 2 files must be kept when all three already exist: a run
+  that finds them must report the reuse and write nothing.
+* They must be written again only when the caller asks for it with
+  `--refresh`.
 
 ## Requirements (RDAP enrichment)
 
@@ -47,6 +51,9 @@ populations:
 * A registry service that fails a configured number of times in a row must be closed for the rest of the run, so that one unreachable endpoint cannot stall the whole collection; its blocks are recorded as unanswered and are asked again later.
 * Requests must be rate limited across threads, and a rate limit or transport failure must be retried a bounded number of times.
 * Enrichment must be idempotent: running it twice must leave the block file unchanged.
+* A default enrichment run must reuse the block file when every block already carries its RDAP record, and must write nothing.
+* Asking again for the blocks left unanswered must be explicit, through `--retry-failed`.
+* The block file must be written only when the run has something to add: a new answer, or a cached answer not yet applied.
 
 ## Behavior
 
@@ -61,6 +68,14 @@ populations:
 * `sh scripts/04-block-enrich.sh` adds RDAP metadata to every collected
   block; `--limit N` enriches only the first N uncached blocks, and
   `--refresh` ignores the cache.
+* A run that finds the three phase 2 files reports
+  `collect: reuse=yes` with their sizes, and writes nothing.
+* `sh scripts/02-block-collect.sh --refresh` and
+  `python3 sources/ip_block_collect.py ... --refresh` write the three files
+  again.
+* A default enrichment run reports `enrich: reuse=yes` when every block
+  already carries its RDAP record. `--retry-failed` asks again only for the
+  blocks whose last answer was a failure or a rate limit.
 * `--rate` sets the requests per second across all threads, and `--thread`
   sets the number of concurrent requests.
 * `--retry` and `--retry-wait` bound the retries of a rate limit or a

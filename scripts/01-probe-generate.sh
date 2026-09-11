@@ -11,6 +11,6 @@ REPOSITORY_ROOT=$(CDPATH= cd -- "$DIRECTORY_SCRIPT/.." && pwd)
 
 FILE_PROBE="$REPOSITORY_ROOT/dataflow.out/01_ip_probe.json"
 
-mkdir -p "$REPOSITORY_ROOT/data"
+mkdir -p "$REPOSITORY_ROOT/dataflow.out"
 
 python3 "$REPOSITORY_ROOT/sources/ip_probe_generate.py" --output "$FILE_PROBE" "$@"

@@ -108,6 +108,39 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 - `make test` runs every test; the phase tests are portable and need no network.
 - `make site` builds the project pages.
 
+## Work Products Are Kept
+
+Each phase produces a numbered work product in `dataflow.out/`, and each one
+costs real time to build. Nothing is rebuilt silently:
+
+| Work product | Cost to build from scratch |
+| --- | --- |
+| `01_ip_probe.json` | 8 seconds of CPU |
+| `02_ip_block.json`, `03_ip_probe.json`, `04_ip_probe.json` | 16 seconds, plus the RIR downloads |
+| the RDAP records inside `02_ip_block.json` | about 40 minutes of registry queries |
+| `05_ip_probe_http.json` | 19 minutes of live Internet probing, not repeatable on demand |
+
+Two mechanisms enforce the rule, and both must agree:
+
+- **make** names the file each step produces, so a step whose file is present does not run. `make all` with everything present takes about five seconds and touches no network.
+- **each program** keeps a work product that already exists. It reports `reuse:` and exits without writing. `--refresh` is the only way to write it again, and it is deliberate.
+
+The raw inputs are cached separately, and are separate from the work products:
+
+- `dataflow.out/raw/delegated-*-extended-latest` — the five RIR delegation files, fetched once. `--refresh` on the block script fetches them again.
+- `dataflow.out/raw/RDAP-BOOTSTRAP-IPV4.json` — the IANA RDAP bootstrap.
+- `dataflow.out/raw/RDAP-CACHE.jsonl` — one record per answered address, so a repeated enrichment asks the registries nothing it already knows.
+
+One exception, because enrichment annotates a file rather than producing one:
+
+- A default `make enrich` reuses `02_ip_block.json` whenever every block already carries its RDAP record. It asks nothing.
+- `sh scripts/04-block-enrich.sh --retry-failed` is the deliberate gap-filler: it asks again for the blocks whose last answer was a failure or a rate limit (617 of 9,200 on 2026-09-10), then writes the file.
+- `--refresh` ignores the cache and asks the registries for every block again.
+
+`make clean` is manual by design; it explains what to remove rather than
+removing it. The RIR download cache in `dataflow.out/raw/` is never touched
+by it.
+
 ## Data Directory
 
 This project keeps generated data in `dataflow.out/`, and ignores it in git:

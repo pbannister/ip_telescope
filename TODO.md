@@ -33,10 +33,16 @@
 * [ ] re-ask the blocks left without an RDAP record on 2026-09-10, 617 of
       9,200: `rdap.afrinic.net` was unreachable from the owning host (196
       blocks), and LACNIC, ARIN, RIPE NCC, and APNIC answered `429` under
-      sustained load (421 blocks). Retry later at a slower rate, or fall
-      back to `whois` on port 43 for AFRINIC. The enricher retries them
-      automatically, because an unanswered address is not cached as an
-      answer.
+      sustained load (421 blocks). Retry later at a slower rate with
+      `sh scripts/04-block-enrich.sh --retry-failed`, or fall back to
+      `whois` on port 43 for AFRINIC. A default enrichment run keeps the
+      block file as it stands and does not retry them.
+* [ ] decide whether enrichment should write its own numbered work product
+      (for example `06_ip_block_enrich.json`) instead of annotating
+      `02_ip_block.json` in place. The placeholder variables for files 04,
+      06, 07, and 08 that once sat in the Makefile were removed because no
+      program produced them, which made `make enrich` re-run on every
+      invocation; the in-place annotation is what the programs do today.
 
 ## Recently Completed
 
@@ -59,3 +65,14 @@
       collected block, with answers cached in `dataflow.out/raw/RDAP-CACHE.jsonl`.
       — **Decided 2026-09-10 by the owner**: enrich all 9,200 probe-bearing
       blocks, not only the blocks no operator holds.
+* [x] keep every work product instead of rebuilding it (2026-09-11): each
+      program now reuses a file that already exists and reports `reuse:`,
+      `--refresh` is the only way to write one again, and `tests/07-work-product-reuse.sh`
+      proves it for all four stages. Verified against the real 770 MB of work
+      products: running every phase script left all five files byte-for-byte
+      and timestamp-for-timestamp unchanged, and `make all` fell from about
+      50 minutes of network work to 5 seconds.
+* [x] fix the half-finished move to `dataflow.out/` (2026-09-11): the
+      collect, enrich, and observe scripts still passed `--data-directory
+      data/`, a directory that no longer existed, and the program defaults
+      pointed there too.

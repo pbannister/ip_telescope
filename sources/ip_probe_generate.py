@@ -38,7 +38,7 @@ import sys
 from typing import Iterator
 
 PATH_REPOSITORY_ROOT = pathlib.Path(__file__).resolve().parent.parent
-PATH_OUTPUT_DEFAULT = PATH_REPOSITORY_ROOT / "data" / "01_ip_probe.json"
+PATH_OUTPUT_DEFAULT = PATH_REPOSITORY_ROOT / "dataflow.out" / "01_ip_probe.json"
 
 BITS_OCTET = 8
 COUNT_OCTET = 4
@@ -278,6 +278,11 @@ def main(arguments: list[str]) -> int:
         metavar="FILE",
         help="verify a probe file instead of writing one",
     )
+    parser_arguments.add_argument(
+        "--refresh",
+        action="store_true",
+        help="write the file again even when it already exists",
+    )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     if arguments_parsed.count_only:
@@ -297,6 +302,24 @@ def main(arguments: list[str]) -> int:
             f"first={probe_format(value_first)} last={probe_format(value_last)}"
         )
         return 0
+
+    # A work product that already exists is verified and kept, not rewritten:
+    # the file is the result of the phase, and regenerating it costs the same
+    # as checking it.
+    if not arguments_parsed.refresh and arguments_parsed.output.is_file():
+        try:
+            count_read, value_first, value_last = probe_verify(
+                arguments_parsed.output, arguments_parsed.first
+            )
+        except ValueError as error_reuse:
+            print(f"reuse: {arguments_parsed.output} failed verification: {error_reuse}")
+            print("reuse: regenerating")
+        else:
+            print(
+                f"reuse: {arguments_parsed.output} count={count_read} "
+                f"first={probe_format(value_first)} last={probe_format(value_last)}"
+            )
+            return 0
 
     count_written = probe_write(arguments_parsed.output, arguments_parsed.first)
     print(f"write: {arguments_parsed.output} count={count_written}")

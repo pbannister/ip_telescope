@@ -35,6 +35,11 @@ digest of the body, and how long the exchange took.
 * Observations must keep the ascending address order of the input.
 * A run must write whatever it has when it is interrupted.
 * The feature must support a target limit, a thread count, and a timeout.
+* An observation file that already exists must be kept: a run that finds one
+  must report the reuse and probe nothing.
+* The pass must be repeated only when the caller asks for it with
+  `--refresh`, because a repeat is live Internet traffic that cannot be
+  recreated from anything on disk.
 
 ## Behavior
 
@@ -44,6 +49,10 @@ digest of the body, and how long the exchange took.
   targets, which supports a trial run.
 * `--thread` sets the number of concurrent requests; `--timeout` sets the
   seconds allowed per request.
+* When `dataflow.out/05_ip_probe_http.json` already exists, the program prints
+  `reuse: <file> observed_at=<time> target=N observed=M` and probes nothing.
+* `--refresh` observes again and writes the file.
+* An unreadable observation file is reported and then observed again.
 * `dataflow.out/05_ip_probe_http.json` is an object with `observed_at`,
   `parameters`, `counts`, and `observations`.
 * Each entry of `observations` is one target; `counts` maps outcome class to

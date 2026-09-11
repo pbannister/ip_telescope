@@ -191,9 +191,31 @@ def probe_block_iter(
 
 
 def collect(
-    path_directory_raw: pathlib.Path, path_directory_data: pathlib.Path
-) -> dict[str, int]:
-    """Write the phase 2 outputs and return their counts."""
+    path_directory_raw: pathlib.Path,
+    path_directory_data: pathlib.Path,
+    flag_refresh: bool = False,
+) -> dict[str, int | str]:
+    """Write the phase 2 outputs, or keep the ones that already exist.
+
+    The three files are produced together and are expensive to rebuild; the
+    enriched 02 file especially, because it carries every RDAP answer. Pass
+    refresh to write them again.
+    """
+    path_block = path_directory_data / "02_ip_block.json"
+    path_assigned = path_directory_data / "03_ip_probe.json"
+    path_open = path_directory_data / "04_ip_probe.json"
+    list_path_output = (path_block, path_assigned, path_open)
+    if not flag_refresh and all(
+        path_output.is_file() for path_output in list_path_output
+    ):
+        return {
+            "reuse": "yes",
+            **{
+                f"file_{path_output.stem}_bytes": path_output.stat().st_size
+                for path_output in list_path_output
+            },
+        }
+
     list_block = block_records_read(path_directory_raw)
     path_probe = path_directory_data / "01_ip_probe.json"
     if not path_probe.is_file():
@@ -205,10 +227,6 @@ def collect(
     list_block_hit: list[BlockRecord] = []
     count_probe_assigned = 0
     count_probe_open = 0
-
-    path_block = path_directory_data / "02_ip_block.json"
-    path_assigned = path_directory_data / "03_ip_probe.json"
-    path_open = path_directory_data / "04_ip_probe.json"
 
     with (
         open(path_assigned, "w", encoding="ascii") as file_assigned,
@@ -282,33 +300,34 @@ def main(arguments: list[str]) -> int:
     parser_arguments.add_argument(
         "--raw-directory",
         type=pathlib.Path,
-        default=PATH_REPOSITORY_ROOT / "data" / "raw",
+        default=PATH_REPOSITORY_ROOT / "dataflow.out" / "raw",
         help="directory holding the RIR delegation files",
     )
     parser_arguments.add_argument(
         "--data-directory",
         type=pathlib.Path,
-        default=PATH_REPOSITORY_ROOT / "data",
+        default=PATH_REPOSITORY_ROOT / "dataflow.out",
         help="directory holding the phase 1 input and the phase 2 outputs",
+    )
+    parser_arguments.add_argument(
+        "--refresh",
+        action="store_true",
+        help="write the phase 2 files again even when they already exist",
     )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     try:
         dict_count = collect(
-            arguments_parsed.raw_directory, arguments_parsed.data_directory
+            arguments_parsed.raw_directory,
+            arguments_parsed.data_directory,
+            arguments_parsed.refresh,
         )
     except (FileNotFoundError, ValueError) as error_collect:
         print(f"collect: FAIL: {error_collect}", file=sys.stderr)
         return 1
 
-    for text_key in (
-        "block",
-        "block_assigned",
-        "block_open",
-        "probe_assigned",
-        "probe_open",
-    ):
-        print(f"collect: {text_key}={dict_count[text_key]}")
+    for text_key, value_count in dict_count.items():
+        print(f"collect: {text_key}={value_count}")
     return 0
 
 
