@@ -145,8 +145,8 @@ was the productive one.
 
 | When | Who | Where it says so |
 | --- | --- | --- |
-| 2012 | **Ology Media, Inc.** | The archived terms page: "DMCA Complaints Ology Media, Inc." |
-| 2012-2018 | **NewPress, LLC** | The archived privacy, terms, and DMCA pages: "the policies and procedures of NewPress, LLC", "Infringement for Company at NewPress, LLC" |
+| 2012-2013 | **Ology Media, Inc.** | The archived terms page: "DMCA Complaints Ology Media, Inc." |
+| 2018-2021 | **NewPress, LLC** | The archived privacy, terms, and DMCA pages: "the policies and procedures of NewPress, LLC", "Infringement for Company at NewPress, LLC". The start of this span read "2012" in the first draft; see the correction in Addendum 3 |
 | 2021-2026 | **Ology Newswire, Inc.** | The ASN name, the application title, and the Substack |
 
 Three named operators behind one domain across twenty-four years. The
@@ -327,5 +327,121 @@ block, the spread of hosts, the dead feed, the expired certificates, the tiny
 bills — is now ordinary, and the ordinary reading has names, dates, and prices
 attached.
 
+## Addendum 3: whose domain this is, and how many owners it has had — 2026-09-11
+
+The owner asked, of the 2002 registration date: **"Could this be singular
+ownership, with different attempts over the years? Or is there evidence this
+changed ownership to different humans?"**
+
+Neither reading survives on its own. **The registration is continuous; the
+ownership is not.** The 2002 date is the record's age, not one party's tenure:
+`ology.com` had a life before it, went quiet, and was registered again in 2002 by
+a Texas IT consultancy. The operators since 1998 are mutually unrelated.
+
+### The owners, era by era
+
+| Era | Who ran `ology.com` | What they were doing with it | Where the evidence is |
+| --- | --- | --- | --- |
+| 1998-1999 | **Brainiac**, an Internet access provider | "quality Internet access for the South County and Providence Dialing areas... Our staff of experienced UNIX professionals" | Internet Archive captures, 1998-12-01 and 1999-01-25 |
+| 2000 | a member of **myinternet.com** | "MYINTERNET MEMBER WEBSITE UNDER CONSTRUCTION — this domain is currently registered by a member of myinternet.com" | Internet Archive capture, 2000-03-02 |
+| 2002-2005 | **OLOGY, LLC** (Texas) | An enterprise-IT consultancy: "The Science of Solutions", "Our Ologists are ready to sit down with you today to discuss your specific IT challenges", offices in Dallas and Irving, toll-free `888-OLOGY-4U`, clients including Alcatel, Frito-Lay and GTE, pages signed "© 2005 OLOGY, LLC" | The firm's own pages, 2002-09-23 through 2005-08-23 |
+| 2006-2008 | nobody | GoDaddy parking: "www.ology.com coming soon! ... This page is parked free, courtesy of GoDaddy.com", with sponsored links for blog tools and Squarespace | Internet Archive captures, 2007-06-16, 2007-12-30, 2008-01-29 |
+| 2008-2015 | **Ology Media, Inc.** (New York), run by co-founder and CEO **Beth Haggerty** | A media property: "a blogging community and daily publication by and for Millenials" (2009), "TV recaps, movie reviews, music news" (2010-2011), the My.Ology social network, 31.7 million monthly uniques by comScore's count | Site captures from 2008-12-19; the terms page names the company and its address on 2012-03-15 and 2013-01-14; the company's own interview and fundraising profile name Haggerty as chief executive |
+| 2016-2021 | **NewPress, LLC** (Lafayette, Indiana) | An ad-supported content property, and a publishing platform for other people: "NewPress attaches revenue mechanisms to make money for you" | The terms and privacy pages name it from 2018-08-22 and 2019-08-19; `newpress.co` live today; an Indiana registry listing |
+| 2021- | **Ology Newswire, Inc.** (Monticello, Indiana) | A decentralized publishing venture — did:psqr identities, signed articles, Virtual Public Squares | The ARIN organization ON-70 registered 2021-09-10, the application, and the GitHub organization |
+
+Three unrelated parties have held this name since 1998: an Internet provider in
+Rhode Island, an IT consultancy in Dallas, and a media startup in New York. Each
+handoff between them shows up as an interval in which the domain served nothing
+at all — a registrar placeholder and a lapsed registration for the first, a
+GoDaddy parking page for the second.
+
+### The 2002 date is a registration date, not a tenure
+
+- The Internet Archive holds `ology.com` from **1998** and **1999** as
+  Brainiac's site, and in **2000** as a `myinternet.com` member placeholder —
+  that is, the earlier registration was sitting unused at a registrar.
+- The registrar's record gives a creation date of **2002-05-02**. A domain that
+  lapsed and was registered again takes the new date, so the earlier
+  registration ended and this one began: the 1998 party is not the 2002 party.
+- Between **2005-08-23** (OLOGY, LLC's last capture, still selling IT services)
+  and **2007-06-16** (a GoDaddy parking page) the domain stopped being used by
+  anyone. That seam is where the IT consultancy's tenure ends.
+- The media property appears on **2008-12-19**, so the domain passed from the
+  consultancy (or from whoever held it after) to the media company inside a
+  window the archive does not fill.
+
+### The one human who does span the modern era
+
+There is a single thread through the last decade of this domain, and it is not a
+founder's:
+
+| When | What | Where it says so |
+| --- | --- | --- |
+| 2010-04-22 | A GitHub account, `github.com/gribneau`, is created | GitHub's own user record |
+| 2013 | **Christian Gribneau — "VP of Technology @ Ology Media Inc."** gives the talk "Location, Location, Location" at Erlang Factory SF Bay Area | The conference's speaker page; the talk's code is his repository `erlocator`, created 2013-02-25 |
+| 2016-06 to 2021-06 | A software engineer works at **NewPress LLC** on the content pipeline and the CMS behind these sites | That engineer's public résumé, `bahm.com/resume.pdf` |
+| 2019-11-29 | The same GitHub account publishes a draft **`did:web`** specification — the standard that leads to this company's `did:psqr` | GitHub repository `did-method-web` |
+| 2021-07-13 | **Christian Gribneau** is registered as the point of contact for the ARIN organization, and is still the only named human on it | ARIN REST, `GRIBN-ARIN`, updated 2025-06-11 |
+| 2021-07 | The same engineer moves to **Ology Newswire, Inc.** and builds the Vue application that is ology.com today | The same public résumé |
+
+So the modern chain is one technologist's continuing project wearing three
+corporate names: the New York media company he was VP of Technology at, the
+Indiana publishing LLC that followed it, and the Indiana corporation that holds
+the ARIN handle today. The **2021-07** dates are the tell — the engineer's move,
+the ARIN contact registration, the GitHub organization, and the incorporation
+all fall within about ten weeks, while the domain, the feeds and the Substack
+carry on across the change.
+
+### A correction to the first addendum
+
+The first addendum's table said NewPress, LLC named the legal pages from "2012".
+That span was too wide, and it came from my own tooling: when a requested
+snapshot does not exist the Internet Archive silently serves the nearest one, so
+my "2015" reads of the terms and privacy pages were really 2013 and 2019 pages.
+Reading the captures by the timestamp the archive actually served gives the
+bounded version used above: **Ology Media, Inc. on 2012-03-15 and 2013-01-14,
+NewPress, LLC from 2018-08-22 onward, and nothing in between that names either
+company.** The changeover therefore sits in an interval the archive does not
+illuminate, and the first addendum should not have implied a date for it.
+
+### What this changes about the anomaly, and what it does not
+
+- It **strengthens the ordinary reading**. A twenty-four-year-old registration,
+  a technologist who has run several publishing attempts on it since 2013, and a
+  venture whose own manifesto posts drew single-digit reactions is a plain story
+  about persistence, not a cover story. The address space in ARIN's reserved
+  `/8` is then one of those attempts rather than a stranger's.
+- It **does not explain the one remaining oddity**: that the space is
+  unassigned in ARIN's own legacy `/8` and announced by an ASN with no network
+  record. Ownership history says who; it does not say why the space, or why
+  the feeds time out while the hosts still answer.
+- It **raises the standing of the "different attempts" reading** of the
+  register: the same operator has put a blog, a social network, an ad-supported
+  content site and a signed-article network on this name. A party that iterates
+  in public on one domain is a plausible party to be running one more
+  experiment on unassigned space.
+
+### What is still unknown
+
+| Question | Why it is open |
+| --- | --- |
+| Who the registrant of record is | Shielded by GoDaddy's proxy `Domains By Proxy, LLC`; the free historical-whois archives I tried hold no captures, and the paid routes were declined |
+| Who bought the domain in 2006-2008, and from whom | No document found. The GoDaddy parking page is the only trace of the interval, and neither era's legal text mentions a predecessor |
+| Whether the media company sold `ology.com` to the publishing LLC, or the technologist simply kept it when the media company wound down | The 2013-2018 interval is unobserved; corporate filings for NewPress, LLC sit behind a bot check, and the free Indiana registry mirrors refuse automated reads |
+| Who the people behind OLOGY, LLC were | The consultancy published its clients and its phone numbers, but no names |
+| Who owns NewPress, LLC and Ology Newswire, Inc. on paper | The registries want a form or a paid lookup. The ARIN record names one human; the corporate records that would confirm him as an officer are the ones I could not read |
+
+Every personal name in this addendum comes from a source its subject published or
+sat for — a conference biography and a registry contact field for the current
+operator, a press interview and a fundraising profile for the earlier chief
+executive. The résumé is cited by address rather than by name, because its
+author is a former employee rather than a principal, and no private contact
+details are reproduced anywhere here. **Nothing in this ownership history
+suggests wrongdoing on anyone's part**, and the finding does not change the
+characterization of site A: an ordinary operator, on an ordinary budget, on an
+address range that is not ordinary at all.
+
 ## Commits
 - `7613baf` docs: follow the registrant and the application behind site A
+- `cdb2589` docs: the registrant's company, the block's shape, and the cost

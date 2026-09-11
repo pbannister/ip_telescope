@@ -117,6 +117,17 @@
 
 ## Recently Completed
 
+* [x] answer the ownership question for `ology.com` (2026-09-11, owner's
+      question: "could this be singular ownership, with different attempts
+      over the years? Or is there evidence this changed ownership to
+      different humans?"): the registration is continuous since 2002-05-02
+      but the ownership is not. The name had a life before 2002 (an Internet
+      provider in Rhode Island), the 2002 registration was made by a Texas IT
+      consultancy, and a GoDaddy parking page separates that firm from the New
+      York media company that followed. Since 2013 one human spans the modern
+      era — Ology Media's VP of Technology, then an Indiana publishing LLC,
+      then the ARIN contact for Ology Newswire, Inc. See the third addendum to
+      `records/03-ology-newswire.md`.
 * [x] show the work per probe (2026-09-11): `sources/ip_probe_report.py` and
       `scripts/07-probe-report.sh` write `site.out/probes.html` and one page
       per phase 4 anomaly, each stating the nine tests, what each test saw
