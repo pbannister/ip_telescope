@@ -445,3 +445,4 @@ address range that is not ordinary at all.
 ## Commits
 - `7613baf` docs: follow the registrant and the application behind site A
 - `cdb2589` docs: the registrant's company, the block's shape, and the cost
+- `a6a3b99` docs: three owners and one technologist behind ology.com
