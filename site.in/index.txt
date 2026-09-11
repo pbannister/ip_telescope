@@ -44,10 +44,24 @@ of those blocks (<code>199.47.160.0/21</code>) has no RDAP object at all.
 <h2>What phase 4 found</h2>
 
 <p>
-The four-prime pattern did not survive contact. Every service answered its
+The whole story, with the evidence and the verdicts, is on the
+<a href="findings.html">findings page</a>.
+</p>
+
+<p>
+The four-prime pattern is not in the answers. Every service answered its
 non-prime control neighbours too, so the pattern was an artifact of where
 phase 3 looked, not a property of the services. The control sample turned 99
 answering addresses into 237 in one block.
+</p>
+
+<p>
+That result does <em>not</em> rule out a curious party watching a range, and
+the first draft of the theory wrongly said it did. The project owner
+corrected it on 2026-09-11: a party running the inverse exercise would watch
+a range and answer every address in it, and our probes would simply have
+fallen inside a block they monitor. Separating a watcher from an ordinary
+host needs the awareness test instead.
 </p>
 
 <ul>

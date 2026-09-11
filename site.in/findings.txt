@@ -1,0 +1,144 @@
+<h1>Observed ip_probe results</h1>
+
+<p>
+This page records what the project has actually observed: which addresses
+answered, what answered there, and what the evidence supports. The
+<em>expected</em> characterization — the four explanations and the tests that
+separate them — is written down separately, in
+<a href="documents-07-characterization-theory.html">the characterization
+theory</a>. The full evidence and reasoning are in
+<a href="records-01-probe-characterization.html">the phase 4 record</a>.
+</p>
+
+<p>
+Everything below is dated. Nothing here is a conclusion about intent: it is
+what the measurements show, and what would overturn each reading.
+</p>
+
+<h2>What the passes produced</h2>
+
+<table>
+<tr><th>Phase</th><th>Result</th><th>Verified</th></tr>
+<tr><td>1 — probe generation</td><td>7,400,808 routable IPv4 addresses whose four octets are each prime</td><td>2026-09-10</td></tr>
+<tr><td>2 — block collection</td><td>9,200 RIR blocks hold at least one probe; 8,616 are operator-held and 584 are not, so 49,572 probes sit where no operator holds address space</td><td>2026-09-10</td></tr>
+<tr><td>2 — RDAP enrichment</td><td>8,556 blocks answered, 27 answered <code>404</code>, 617 unanswered (AFRINIC was unreachable; the other registries rate limited the run)</td><td>2026-09-10</td></tr>
+<tr><td>3 — observation</td><td>49,572 probes asked one HTTP question: 99 answers, 6 refusals, 1 reset, 49,466 timeouts</td><td>2026-09-10</td></tr>
+<tr><td>4 — characterization</td><td>342 targets (106 anomalies and 236 non-prime controls) given the full battery; 241 answered, every answer a catch-all</td><td>2026-09-11</td></tr>
+</table>
+
+<h2>The four sites that responded</h2>
+
+<table>
+<tr><th>Block</th><th>Registry says</th><th>What answered</th><th>Verdict</th></tr>
+<tr>
+<td><code>23.191.137.0-23.191.151.255</code><br>ARIN</td>
+<td><code>reserved</code>, and RDAP holds no object for it — only the parent <code>23.0.0.0/8</code>, which ARIN holds itself</td>
+<td>237 targets, all identical: nginx <code>301</code> to HTTPS, one body digest, one certificate (common name <code>ology.com</code>, expired May 2025). The answering range is exactly the eight <code>/24</code>s announced by AS400050, and <code>ology.com</code> resolves into it</td>
+<td><b>Incidental</b>, with curious not excluded: an ordinary web host whose registry record is stale. Nothing concealed</td>
+</tr>
+<tr>
+<td><code>103.241.72.0/22</code><br>APNIC</td>
+<td><code>reserved</code></td>
+<td>A redirect page loading <code>car.js</code>, a certificate for <code>baidu.sina.2022.5508085.com</code> that resolves to <code>103.241.73.190</code>, an unconfigured Apache/Ubuntu host beside it, no reverse DNS. The <code>/24</code> is announced by a hosting provider</td>
+<td><b>Two claims:</b> incidental for the anomaly (unlisted allocation), <b>nefarious</b> for the activity — an automatic redirect and a throwaway domain farm in space with no recorded owner</td>
+</tr>
+<tr>
+<td><code>103.149.23.0/24</code><br>APNIC</td>
+<td><code>reserved</code></td>
+<td>No page anywhere: six addresses refused the connection, the rest stayed silent, round trip 170–181 ms. The <code>/24</code> is announced by StarHub, Singapore</td>
+<td><b>Incidental</b>: a stale record and ordinary filtering on an announced range where no service runs</td>
+</tr>
+<tr>
+<td><code>199.47.160.0/21</code><br>ARIN</td>
+<td><code>reserved</code>, and no RDAP object at all</td>
+<td>No page: two refusals and four resets from <code>199.47.167.0/24</code>, round trip 80 ms. That <code>/24</code> is announced although the containing <code>/21</code> is not</td>
+<td><b>Unexplained</b>, narrowing to incidental: the device that resets is not identified</td>
+</tr>
+</table>
+
+<h2>The control sample, and a correction to our own theory</h2>
+
+<p>
+Phase 4 probed non-prime control addresses beside every anomaly, because the
+four-prime pattern is our pattern, not necessarily anyone else's. The
+controls answered as readily as the probes did: 99 answering addresses became
+237 in one block.
+</p>
+
+<p>
+The first reading of that result was wrong, and the project owner corrected
+it on 2026-09-11. The draft argued that a party running the inverse exercise
+would answer only on the four-prime addresses, so answering the neighbours
+argued against that explanation. The owner's objection: a party watching a
+range would answer its whole range, and our probes would simply have fallen
+inside a block they monitor. That is the more sensible expectation, and it
+means the control sample separates nothing between a curious party and an
+ordinary one.
+</p>
+
+<p>
+What the control sample does settle is the extent of each live range, and
+that no service exists <em>because</em> of the prime pattern. Separating a
+watcher from an ordinary host needs the awareness test: a response that
+changes because of our probing, a baseline from a second vantage point, or
+content that engages the pattern. None has been observed yet.
+</p>
+
+<h2>The light-speed test</h2>
+
+<p>
+A round trip cannot be faster than light, so distance is the one measurement
+an Earth-bound explanation cannot fake. One round trip takes 239 ms to
+geosynchronous orbit and 2,564 ms to the Moon. The project measures single
+round trips rather than whole requests, because a request costs two round
+trips and a responder at lunar distance would need 5.1 seconds to answer a
+<code>GET</code> while completing a connect in 2.6 seconds.
+</p>
+
+<p>
+No address measured near either quantum. The smallest connect to the ARIN
+site was 8 ms, which rules out geosynchronous orbit by a factor of thirty and
+the Moon by a factor of three hundred; the refusals at 170–181 ms agree with
+an operator on the ground in Singapore. Jitter ran from 1 ms to 1004 ms with
+no steady address, which is what a long terrestrial path looks like.
+</p>
+
+<p>
+The five-second budget put the lunar floor inside the window, so the 89
+targets that never answered are evidence against the Moon as well as the ones
+that did. What remains out of sight is Sun–Earth L2 at ten seconds and
+beyond, which is the outer edge of the range the project means to look at.
+</p>
+
+<p>
+A caution the project now records: a latency band is not a signature. Thirty-one
+of the 99 phase 3 answers fell within a quarter of the geosynchronous quantum
+and every one was ordinary long-haul routing. Satellite broadband subscribers
+sit in that band legitimately.
+</p>
+
+<h2>Stability</h2>
+
+<p>
+Two characterization passes ran 21 minutes apart on 2026-09-11. All 241
+answers, all 241 page digests, and every control outcome were identical: not
+one address changed state. Stable behaviour is what ordinary services look
+like, and it is mild evidence against a moving operation. A 21-minute window
+is a first data point, not a proof.
+</p>
+
+<h2>What is still open</h2>
+
+<ul>
+<li>The awareness test needs a second vantage point on another continent: a
+terrestrial server answers a nearby observer faster, a distant one does not
+care, and the project has one host.</li>
+<li>Site <code>199.47.167.0/24</code> stays unexplained until the resets are
+attributed: a traceroute or an outside measurement would place the device.</li>
+<li>Live ranges are sampled, not mapped to the address.</li>
+<li>Phase 5, deferred: rogue <code>ip_probe</code> inside operator-held
+blocks, where an address answers although the registry's own object does not
+cover it. Large blocks are the likely hiding places.</li>
+<li>The criteria for "curious" remain provisional. They changed once already,
+on the owner's correction.</li>
+</ul>

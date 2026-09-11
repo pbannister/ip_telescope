@@ -129,10 +129,14 @@ the verdict, the confidence, and the measurement that would overturn it.
 An address that no evidence explains is recorded as **unexplained**, which is
 a result and not a failure.
 
-The sharpest test is the control: an incumbent service answers on every
-address in its range, while a deliberate exercise would answer only on the
-four-prime addresses. So phase 4 probes non-prime neighbours as well, and
-reports both.
+The control sample is the cheapest test the project has, and it answers two
+questions: how far the live range extends around an address that answers, and
+whether the service exists *because* of the four-prime pattern. It does not
+separate a curious party from an ordinary one: a party watching a range would
+answer every address in it, exactly as an ordinary host would, because the
+probes simply fell inside a block they monitor (owner correction,
+2026-09-11). What would separate them is the awareness test — a response that
+changes because of our probing, or content that engages the pattern.
 
 ## Work Products Are Kept
 
@@ -182,6 +186,22 @@ This project keeps generated data in `dataflow.out/`, and ignores it in git:
 - The targets are addresses that no operator holds, so no service is being disturbed.
 - A run states its parameters (port, thread count, timeout) in its own output file.
 - Response bodies are never stored beyond a 256-character prefix; only length and digest are kept.
+
+## Published Pages
+
+The project publishes a page set through the homelab, which fetches this
+repository's generated `site.out/` tree and deploys it:
+
+- `index.html` — the project status.
+- `dashboard.html` — the work-product counts.
+- `findings.html` — **the observed `ip_probe` results**, with the evidence and
+  the verdicts for each site that answered.
+- `todo.html`, `prompts.html`, `documents.html`, `records.html` — the
+  condensed work plan, rules, knowledge, and records, each with the full text
+  of every file behind it.
+
+`make site` builds them. Registration lives in the homelab's
+`sources/projects.yaml`; this project never pushes to the web server itself.
 
 ## Top-Level Map
 

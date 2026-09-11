@@ -64,7 +64,7 @@ until the characterization criteria are trusted.
 
 | | Motive | Expected signature | What would confirm it | The trap |
 | --- | --- | --- | --- | --- |
-| 1 Curious | To be found, or to watch who looks | Deliberate, self-explanatory, uniform across the range, stable between passes; answers only on the four-prime addresses; a named certificate | Content that explains its own purpose; identical answers from every deliberate address and nothing from the neighbours | Content may be absent by design; silence from the neighbours may be a filter rather than a choice |
+| 1 Curious | To be found, or to watch who looks | A range that answers, not a pattern: the probes fell inside a block the other party already monitors. Deliberate, self-explanatory where they choose to speak, uniform across their range, stable between passes; a named certificate | Content that explains its own purpose or engages the pattern; identical answers from every address in the monitored range; evidence of awareness that the range is being probed | Expecting the exercise to show in the address pattern. A monitoring party answers its whole range, which looks exactly like an ordinary host |
 | 2 Incidental | None | Default and catch-all artifacts; only part of the block answers; a boundary or an announcement explains it | Any `Host` header gets the same answer; a default-page fingerprint; a certificate naming an unrelated domain; reverse DNS pointing at a hosting provider; the live range matching an allocation boundary | A stale registry record looks exactly like an accident, and is a different story |
 | 3 Nefarious | To hide | Mimicry of 1 or 2, with the layers disagreeing; behaviour that changes between passes | The application claims one identity while certificate, reverse DNS, or registry origin claim another; refusals and resets instead of answers; answering only under some probe patterns; hosting where no registry owner exists | Assuming concealment where a configuration accident would do; and assuming innocence because the page looks official |
 | 4 Other | Unknown | A capability we cannot reproduce | Latency below the light-speed bound for the claimed distance; an answer to a challenge generated after the run; content with no human provenance; the same behaviour in unrelated registries at the same moment | Every hoax, and every measurement error, lands here first |
@@ -73,10 +73,18 @@ until the characterization criteria are trusted.
 
 The tests are ordered by how much they discriminate per unit of effort.
 
-- **The control test.** Probe non-prime neighbours inside the same block. An
-  incumbent service answers everywhere; a deliberate exercise answers only on
-  the four-prime addresses. This single comparison separates group 1 from
-  group 2 more sharply than any amount of reading the page.
+- **The control test.** Probe non-prime neighbours inside the same block. It
+  answers two questions, and only two: how far the live range extends around
+  an address that answers, and whether the service exists *because* of the
+  four-prime pattern.
+  It does **not** separate group 1 from group 2, and the owner corrected an
+  earlier claim here that it did (2026-09-11). A curious party watching a
+  range would answer every address in that range, exactly as an ordinary host
+  would; the probes simply fell inside a block they monitor. Prime-only
+  answering would be one particular style of deliberate placement, not the
+  expected form of the exercise, so a negative result from this test says
+  nothing against group 1.
+  Separating group 1 from group 2 needs the awareness test below.
 - **The catch-all test.** Ask for the same page with an unrelated `Host`
   header. An identical answer means the server is not listening for a name,
   which is the signature of a default or parked configuration.
@@ -91,6 +99,14 @@ The tests are ordered by how much they discriminate per unit of effort.
   hidden ones move.
 - **The self-explanation test.** Look for content that explains its own
   purpose: a banner, an invitation, a puzzle, a robots.txt with a purpose.
+- **The awareness test.** This is what separates group 1 from group 2, and it
+  is the hardest to run. A party watching a range knows it is being probed,
+  and may show it: a response that changes after our probes, a service that
+  answers on a schedule, a page that acknowledges the pattern, a reply to
+  something only a prober would send. An ordinary host shows none of it. The
+  test needs a baseline (the same probes from a second vantage point, or the
+  same address probed by other parties) to tell "changed because of us" from
+  "changed anyway".
 - **The geography test.** Compare latency with the claimed location. A
   service claiming one continent while answering in three milliseconds is
   not where it says it is.
@@ -115,7 +131,10 @@ cheapest such measurement, because light takes time and nothing beats it.
 | Geosynchronous orbit | 35,786 km | **239 ms** |
 | The Moon | 384,400 km | **2,564 ms** |
 | Sun–Earth L2 | 1.5 million km | 10.0 s |
-| Mars, closest approach | 55 million km | 6.1 minutes |
+
+**Scope (owner decision, 2026-09-11).** Distances much beyond L2 and the Moon
+are out of scope: the project is not searching for latency that would imply
+Mars or deeper space. L2 is the outer bound of interest.
 
 **Measure one round trip, not one request.** A TCP connect completes in one
 round trip; a full HTTP exchange costs two. A responder at lunar distance
@@ -148,10 +167,10 @@ decides nothing. Three further conditions must hold together:
   widely separated vantage points seeing the same floor is the signature.
 
 **A timeout is not evidence of absence.** Anything beyond the budget — L2 at
-ten seconds, Mars at minutes — is recorded as a timeout, which is exactly
+ten seconds, and anything slower — is recorded as a timeout, which is exactly
 what a blackhole records. Every pass must state its budget so the blind spot
-is visible, and a test of the far field needs a deliberately long wait rather
-than a shorter one.
+is visible. Since L2 is the outer bound of interest, a pass that wants to
+cover it needs a wait of about eleven seconds.
 
 **Choose the budget so the quantum of interest falls inside it.** The budget
 decides which distances are testable rather than merely unobserved. A
@@ -170,7 +189,11 @@ explanation, and each is testable.
 - **Mimicry.** Group 3 imitates groups 1 and 2, so a tidy default page is not
   evidence of an accident.
 - **The mirror.** This project's own probes look like the thing it hunts. The
-  prime-octet pattern is the tell, in both directions.
+  prime-octet pattern is the tell, in both directions — and the owner's
+  correction (2026-09-11) is that the tell is in *our* pattern, not in
+  theirs. Expecting the other party to answer only on four-prime addresses
+  assumes they organised their infrastructure around a pattern they may not
+  even know exists.
 - **Hoax bias.** A human hoax is far more likely than the fourth explanation,
   and the project's own owner is a candidate author.
 - **Absence of evidence.** An unexplained answer is not evidence for group 4.
@@ -188,10 +211,13 @@ explanation, and each is testable.
 ## The Decision Procedure
 
 1. Gather the evidence: the probe battery, in one pass, with controls.
-2. Rule out the incumbent: does a non-prime neighbour answer too? If so, the
-   explanation is incidental or ordinary, and the work stops there.
-3. Test deliberation: answers only on four-prime addresses, or content that
-   explains itself. That points to group 1.
+2. Rule out the incumbent shape: does a non-prime neighbour answer too? If it
+   does, the service covers a range, which is what an ordinary host does and
+   also what a monitoring party does. That tells you the live range, not the
+   explanation.
+3. Test deliberation: content that explains itself, answers that vary by
+   address rather than repeating one page, or any sign of awareness of the
+   probing. That points to group 1.
 4. Test concealment: do the layers disagree, does the behaviour change between
    passes, is the answer a refusal rather than a page? That points to group 3.
 5. Test impossibility, and only then: a floor pinned to a light-speed

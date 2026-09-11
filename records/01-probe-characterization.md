@@ -21,14 +21,29 @@ the measurement that would overturn it.
 
 ## The Method Finding
 
-**The four-prime pattern did not survive.** Every service answered its
-non-prime neighbours as well. Prime-only answering would have been the tell
-of another party running the inverse exercise; it is not there. The pattern
-was an artifact of where phase 3 looked, not a property of the services.
+**The four-prime pattern is not in the answers.** Every service answered its
+non-prime neighbours as well, so the pattern was an artifact of where phase 3
+looked, not a property of the services.
 
-The control sample turned 99 answering addresses into 237 in one block, so
-probing only four-prime addresses undersamples a live range roughly four to
-one.
+**Corrected 2026-09-11, by the owner.** The first wording here claimed that
+prime-only answering "would have been the tell of another party running the
+inverse exercise", so that its absence argued against group 1. The owner
+disagrees, and is right: a party running the inverse exercise would most
+likely be watching a *range*, not a pattern, and the probes would simply have
+fallen inside a block they monitor. Answering the whole range is therefore
+consistent with group 1 as well as with group 2, and this test separates
+neither from the other.
+
+What the control sample does establish is the extent of each live range, and
+that the services do not exist because of the pattern. Separating a curious
+party from an ordinary host needs the awareness test: a response that changes
+because of our probing, a baseline from another vantage point, or content
+that engages the pattern. None was observed, so group 1 stays open wherever
+group 2 is asserted, and the verdicts below say so.
+
+The sample also corrected the project's own sampling: it turned 99 answering
+addresses into 237 in one block, so probing only four-prime addresses
+undersamples a live range roughly four to one.
 
 **The registry file is one witness, not the truth.** Adding the routing layer
 — who actually announces the prefix — resolved three of the four sites
@@ -57,14 +72,25 @@ often than the word "registry" suggests.
 - RDAP holds no object for the block, only its parent `23.0.0.0/8`, which
   ARIN holds itself.
 
-**Verdict: incidental.** The anomaly is an artifact of the delegation record.
-The space is announced, the domain's own DNS points into it, and the
-certificate names the same domain: an ordinary web host whose registry record
-is stale, not a hidden operation. Confidence: **high**.
+**Verdict: incidental, with curious not excluded.** The anomaly is an artifact
+of the delegation record. The space is announced, the domain's own DNS points
+into it, and the certificate names the same domain: an ordinary web host whose
+registry record is stale, and nothing about it is concealed.
+
+Group 1 is *not* excluded, and the owner's correction of 2026-09-11 removed
+the reason the first draft gave for excluding it: a curious party watching
+`23.191.144.0/20` would answer exactly as this service does. What argues
+against a watch post is the shape of the identity — a named commercial domain
+with a certificate that expired in May 2025 reads as an abandoned ordinary
+host rather than an active observer.
+
+Confidence: **medium** for the verdict, **high** that this is not concealment.
 
 **Falsifier.** If AS400050 withdrew its announcement and the answers
 persisted, or if the certificate and DNS were unrelated to the announced
-range, this reading would fail.
+range, this reading would fail. It would move to group 1 if an awareness test
+showed the service reacting to our probes; it would move to an ordinary live
+service if the certificate were renewed and the site came back to life.
 
 ## Site B — 103.241.72.0/22 (APNIC, `reserved`)
 
@@ -216,8 +242,9 @@ wrong, and the arithmetic says why: the lunar round trip is 2,564 ms and the
 budget is 5,000 ms, so a responder at lunar distance *would have answered in
 time*. The 89 targets did not, which excludes the Moon for them as well as
 for the addresses that answered. What stays outside the window is Sun–Earth
-L2 at 10 seconds, Mars at minutes, and anything slower still: those remain
-invisible, and a test of them needs a deliberately long wait.
+L2 at 10 seconds and anything slower. The owner scoped the search to L2 and
+nearer on 2026-09-11, so the remaining blind spot is the outer edge of the
+range of interest rather than the whole far field.
 
 One trap worth recording. Thirty-one of the 99 phase 3 answers fell within a
 quarter of the geosynchronous quantum, and every one of them was an ordinary
