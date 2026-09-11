@@ -79,8 +79,7 @@ cat > "$DIRECTORY_DATA/02_ip_block.json" <<'FIXTURE'
             "date": "",
             "status": "reserved",
             "extensions": [""]
-        },
-        "derived": {"address_end": "127.255.255.255", "prefix": "127.0.0.0/8", "opaque_id": ""}
+        }
     }
 ]
 FIXTURE

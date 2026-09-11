@@ -31,17 +31,22 @@ was drawn from.
    were repaired to "not a CIDR block", and the generator now checks
    alignment.
 
-2. **All 9,200 block UUIDs no longer match their derivation rule.** The
+2. **All 9,200 block UUIDs no longer matched their derivation rule.** The
    namespace string was changed from `ip_telescope` to `IP_telescope` on
-   2026-09-11, after the blocks were written. The data is internally
-   consistent — the probe-to-block file and the characterization refer to
-   the same UUIDs — but re-deriving from today's code would produce a
-   different set, so any join rebuilt today would silently miss. The audit
-   accepts the historical namespace and reports it as a note rather than an
-   error. **A decision is needed**: regenerate the phase 2 files (cheap: the
-   RDAP cache refills without network), or freeze the old namespace.
+   2026-09-11, after the blocks were written. The data was internally
+   consistent — the probe-to-block file and the characterization referred to
+   the same UUIDs — but re-deriving from today's code produced a different
+   set, so any join rebuilt today would silently miss.
 
-After the repair: **zero internal contradictions** across 9,200 blocks.
+   **Resolved the same day, by the owner's instruction**: the phase 2 files
+   were regenerated, so the UUIDs now match the rule. The regeneration ran in
+   17 seconds, the RDAP annotations were reapplied from the cache in 4 seconds
+   without asking a registry anything, and the characterization's block
+   references were remapped (4 block entries, 598 observations, 6 isolation
+   entries; zero stale references). The audit's namespace note is gone.
+
+After the repair and the regeneration: **zero internal contradictions** across
+9,200 blocks.
 
 ## The irregularities the audit found (all cross-source, none defects)
 
@@ -81,14 +86,22 @@ summary instead, and the verbatim documents stay in the local work product.
 The map test enforces this, and runs the homelab's leak-gate pattern over
 the generated output.
 
-## Fields that can be dropped
+## Fields dropped
 
-The audit answers the question of which redundancy earns its keep.
+The owner instructed on 2026-09-11 that the fields below be dropped, and they
+are gone from the regenerated file: `derived.address_end`, `derived.prefix`,
+`derived.opaque_id` (the whole `derived` object), and `rdap.query`. Readers
+compute the range and the prefix from the record with the helpers
+`block_address_end` and `block_prefix_text` in `ip_block_collect.py`.
 
-- **Droppable outright.** `derived.address_end` (start + value − 1),
-  `derived.prefix` (start and value, and it was wrong for 21 blocks until
-  repaired), `derived.opaque_id` (a copy of `rir_record.extensions[0]`), and
-  `rdap.query` (always `rir_record.start`).
+The reasoning behind each, kept for the record:
+
+- **Dropped.** `derived.address_end` (start + value − 1), `derived.prefix`
+  (start and value, and it was wrong for 21 blocks until repaired),
+  `derived.opaque_id` (a copy of `rir_record.extensions[0]`), and `rdap.query`
+  (always `rir_record.start`). The audit no longer checks them because there
+  is nothing left to contradict, and the `--repair` mode was removed with
+  them.
 - **Keep, though derived.** `block_uuid`: it is the join key for
   `03_ip_probe.json` and the characterization, and the namespace drift shows
   what happens when a derivation rule moves under a stored value.
@@ -111,8 +124,31 @@ The audit answers the question of which redundancy earns its keep.
   per-block page, and that no registrant contact detail is published.
 - `make site` — index, 47 octet pages, 9,200 block pages, in 8 seconds.
 
+## Also in this pass
+
+- **The map's stylesheet moved into the head.** It was being written into the
+  page body, so a block of CSS rendered as visible text at the top of every
+  map page. `tests/09-block-map.sh` now asserts that the stylesheet is in the
+  head and not in the body.
+- **The fourth explanation lost its pattern list** (owner, 2026-09-11). The
+  theory document had listed four supposed signatures for "other" — a
+  light-speed latency, an answer to a challenge generated after the run,
+  content with no human provenance, and identical behaviour across unrelated
+  registries. The owner rejected the list, and rightly: they were guesses
+  dressed as criteria. Nothing is expected of that explanation now; the tests
+  earn their place by eliminating Earth-bound readings, and a case that
+  survives them is recorded as unexplained. Nothing in the computed result
+  changed: the light-speed pass found no candidate before and finds none now.
+- **Two new enricher modes**: `--cache-only` reapplies the cached RDAP
+  answers and asks the registries nothing, which is what makes a regeneration
+  cheap; and the keep-the-file rule now compares the stored annotation with
+  the cached one, so a rebuild that changes content is no longer mistaken for
+  a no-op.
+
 ## Commits
 
 - `0d2942e` feat: audit the block fields and build the browsable map
 - the leak-gate boundary fix in the homelab: `cd97427` fix: do not read a
   public address as a private one in the leak gate
+- the regeneration, the field drops, the stylesheet fix, and the fourth
+  explanation's reframing: `pending`

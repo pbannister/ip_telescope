@@ -85,11 +85,11 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 | File | Contents | Count | Size |
 | --- | --- | --- | --- |
 | `dataflow.out/01_ip_probe.json` | every routable four-prime-octet address | 7,400,808 | 147 MB |
-| `dataflow.out/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 165 MB |
+| `dataflow.out/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 163 MB |
 | `dataflow.out/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
 | `dataflow.out/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
 | `dataflow.out/05_ip_probe_http.json` | one HTTP observation per phase 3 target | 49,572 | 18 MB |
-| `dataflow.out/06_ip_probe_characterize.json` | phase 4 evidence for each anomaly and its controls | 342 | 3.4 MB |
+| `dataflow.out/06_ip_probe_characterize.json` | phase 4 evidence: anomalies, controls, neighbours | 598 | 3.5 MB |
 
 - Counts verified 2026-09-10 against the RIR delegation files fetched that day.
 - Of the 9,200 probe-bearing blocks, 8,616 are operator-held (`allocated` or `assigned`) and 584 are not (`available` or `reserved`).

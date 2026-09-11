@@ -38,7 +38,6 @@ cat > "$DIRECTORY_DATA/02_ip_block.json" <<'FIXTURE'
             "start": "2.2.0.0", "value": 65536, "date": "20100712",
             "status": "allocated", "extensions": ["opaque-1"]
         },
-        "derived": {"address_end": "2.2.255.255", "prefix": "2.2.0.0/16", "opaque_id": "opaque-1"},
         "rdap": {
             "query": "2.2.0.0", "service": "https://rdap.db.ripe.net/", "status": 200,
             "fetched_at": "2026-09-10T16:39:00Z", "error": null,
@@ -65,7 +64,6 @@ cat > "$DIRECTORY_DATA/02_ip_block.json" <<'FIXTURE'
             "start": "2.9.0.0", "value": 768, "date": "",
             "status": "reserved", "extensions": [""]
         },
-        "derived": {"address_end": "2.9.2.255", "prefix": null, "opaque_id": ""},
         "rdap": {
             "query": "2.9.0.0", "service": "https://rdap.arin.net/registry/", "status": 404,
             "fetched_at": "2026-09-10T16:39:01Z", "error": "HTTPError: 404",
@@ -155,6 +153,13 @@ assert "2.2.2.2*" in text_block, "the responding probe is not marked"
 assert "Isolated" in text_block, "the phase 4 result is missing"
 assert "../blocks.html" in text_block, "the back link is missing"
 assert "404" in text_reserved, "the 404 state is missing on the second block"
+
+# The stylesheet belongs in the head. Stylesheet text in the body renders as
+# visible text on the page, which is a mistake this generator made once.
+text_head = text_index[: text_index.index("</head>")]
+text_body = text_index[text_index.index("</head>") :]
+assert ".map {" in text_head, "the map stylesheet is not in the head"
+assert ".map {" not in text_body, "stylesheet text is leaking into the page body"
 PYTHON_CHECK
 
 # Publishing safety: no registrant contact details, and no leak-gate pattern.

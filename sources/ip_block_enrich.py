@@ -217,6 +217,7 @@ class EnrichOptions:
     count_limit: int | None
     flag_refresh: bool
     flag_retry_failed: bool
+    flag_cache_only: bool
     text_service_force: str | None
 
 
@@ -312,6 +313,31 @@ def summary_read(document_rdap: dict | None) -> dict:
     return dict_summary
 
 
+def cache_failure_read(path_directory_raw: pathlib.Path) -> dict[str, str]:
+    """Return the last recorded failure reason per address.
+
+    The cache keeps every attempt, including the ones that failed. When a work
+    product is rebuilt in cache-only mode there is no new attempt to report, so
+    the previous reason is carried forward rather than replaced with a blank.
+    """
+    path_file = path_directory_raw / FILE_CACHE
+    dict_failure: dict[str, str] = {}
+    if not path_file.is_file():
+        return dict_failure
+    with open(path_file, "r", encoding="utf-8") as file_cache:
+        for text_line in file_cache:
+            text_line = text_line.strip()
+            if not text_line:
+                continue
+            try:
+                record_answer = json.loads(text_line)
+            except json.JSONDecodeError:
+                continue
+            if record_answer.get("status") is None and record_answer.get("error"):
+                dict_failure[record_answer["address"]] = record_answer["error"]
+    return dict_failure
+
+
 def cache_read(path_directory_raw: pathlib.Path) -> dict[str, dict]:
     """Return the cached RDAP answers, keyed by address.
 
@@ -337,6 +363,86 @@ def cache_read(path_directory_raw: pathlib.Path) -> dict[str, dict]:
                 continue
             dict_cache[record_answer["address"]] = record_answer
     return dict_cache
+
+
+def answer_map_build(
+    list_address: list[str],
+    list_service: list[tuple[int, int, str]],
+    limiter_rate: RateLimiter,
+    gate_service: ServiceGate,
+    options: EnrichOptions,
+    path_file_cache: pathlib.Path,
+) -> dict[str, dict]:
+    """Ask the registries about these addresses, or record the gap.
+
+    Cache-only mode asks nothing: the answers are already known, and the point
+    is to rebuild a work product's annotations without spending another round
+    of registry queries. A block with no cached answer is recorded as
+    unanswered, exactly as a failed query would have left it.
+    """
+    dict_new: dict[str, dict] = {}
+    if options.flag_cache_only:
+        dict_failure = cache_failure_read(options.path_directory_raw)
+        for text_address in list_address:
+            dict_new[text_address] = {
+                "address": text_address,
+                "service": service_choose(
+                    address_value(text_address),
+                    list_service,
+                    options.text_service_force,
+                ),
+                "status": None,
+                "fetched_at": None,
+                "document": None,
+                "error": "not asked this pass; last attempt: "
+                + dict_failure.get(text_address, "no answer recorded"),
+            }
+        print(f"enrich: cache only; {len(dict_new)} block(s) left unanswered")
+        return dict_new
+
+    with open(path_file_cache, "a", encoding="utf-8") as file_cache:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=options.count_worker
+        ) as executor_pool:
+            dict_future = {}
+            for text_address in list_address:
+                text_service = service_choose(
+                    address_value(text_address),
+                    list_service,
+                    options.text_service_force,
+                )
+                if text_service is None:
+                    record_answer = {
+                        "address": text_address,
+                        "service": None,
+                        "status": None,
+                        "fetched_at": None,
+                        "document": None,
+                        "error": "no RDAP service for address",
+                    }
+                    dict_new[text_address] = record_answer
+                    file_cache.write(json.dumps(record_answer, ensure_ascii=True) + "\n")
+                    continue
+                dict_future[
+                    executor_pool.submit(
+                        rdap_query_gated,
+                        text_service,
+                        text_address,
+                        options,
+                        limiter_rate,
+                        gate_service,
+                    )
+                ] = text_address
+            count_done = 0
+            for future_query in concurrent.futures.as_completed(dict_future):
+                record_answer = future_query.result()
+                dict_new[record_answer["address"]] = record_answer
+                file_cache.write(json.dumps(record_answer, ensure_ascii=True) + "\n")
+                file_cache.flush()
+                count_done += 1
+                if 0 == count_done % options.count_progress:
+                    print(f"enrich: queried {count_done}/{len(list_address)}")
+    return dict_new
 
 
 def enrich(options: EnrichOptions) -> dict[str, int]:
@@ -388,54 +494,14 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
 
     dict_new: dict[str, dict] = {}
     options.path_directory_raw.mkdir(parents=True, exist_ok=True)
-    with open(path_file_cache, "a", encoding="utf-8") as file_cache:
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=options.count_worker
-        ) as executor_pool:
-            dict_future = {}
-            for text_address in list_address:
-                text_service = service_choose(
-                    address_value(text_address),
-                    list_service,
-                    options.text_service_force,
-                )
-                if text_service is None:
-                    record_answer = {
-                        "address": text_address,
-                        "service": None,
-                        "status": None,
-                        "fetched_at": None,
-                        "document": None,
-                        "error": "no RDAP service for address",
-                    }
-                    dict_new[text_address] = record_answer
-                    file_cache.write(
-                        json.dumps(record_answer, ensure_ascii=True) + "\n"
-                    )
-                    continue
-                dict_future[
-                    executor_pool.submit(
-                        rdap_query_gated,
-                        text_service,
-                        text_address,
-                        options,
-                        limiter_rate,
-                        gate_service,
-                    )
-                ] = text_address
-            count_done = 0
-            for future_query in concurrent.futures.as_completed(dict_future):
-                record_answer = future_query.result()
-                dict_new[record_answer["address"]] = record_answer
-                file_cache.write(json.dumps(record_answer, ensure_ascii=True) + "\n")
-                file_cache.flush()
-                count_done += 1
-                if 0 == count_done % options.count_progress:
-                    print(f"enrich: queried {count_done}/{len(list_address)}")
+    dict_new = answer_map_build(
+        list_address, list_service, limiter_rate, gate_service, options, path_file_cache
+    )
 
     dict_cache.update(dict_new)
     count_status: dict[str, int] = {}
     count_applied = 0
+    count_changed = 0
     for document_block in list_block:
         text_address = document_block["rir_record"]["start"]
         record_answer = dict_cache.get(text_address)
@@ -443,7 +509,7 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
             continue
         if "rdap" not in document_block:
             count_applied += 1
-        document_block["rdap"] = {
+        document_rdap_new = {
             "query": text_address,
             "service": record_answer["service"],
             "status": record_answer["status"],
@@ -452,12 +518,15 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
             "summary": summary_read(record_answer["document"]),
             "document": record_answer["document"],
         }
+        if document_block.get("rdap") != document_rdap_new:
+            count_changed += 1
+        document_block["rdap"] = document_rdap_new
         text_key = str(record_answer["status"]) if record_answer["status"] else "error"
         count_status[text_key] = count_status.get(text_key, 0) + 1
 
     # Nothing was asked and nothing new was applied, so the block file already
     # holds this answer set. Rewriting 165 MB to change nothing is waste.
-    if not options.flag_refresh and 0 == len(dict_new) and 0 == count_applied:
+    if not options.flag_refresh and 0 == len(dict_new) and 0 == count_changed:
         return {
             "reuse": "yes",
             "block": len(list_block),
@@ -473,6 +542,7 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
         "block": len(list_block),
         "queried": len(list_address),
         "applied": count_applied,
+        "changed": count_changed,
         **count_status,
     }
     if gate_service.set_blocked:
@@ -528,6 +598,11 @@ def main(arguments: list[str]) -> int:
         action="store_true",
         help="ask again for blocks whose last answer was a failure or a rate limit",
     )
+    parser_arguments.add_argument(
+        "--cache-only",
+        action="store_true",
+        help="apply the cached answers and ask the registries nothing",
+    )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     options = EnrichOptions(
@@ -542,6 +617,7 @@ def main(arguments: list[str]) -> int:
         count_limit=arguments_parsed.limit,
         flag_refresh=arguments_parsed.refresh,
         flag_retry_failed=arguments_parsed.retry_failed,
+        flag_cache_only=arguments_parsed.cache_only,
         text_service_force=arguments_parsed.service,
     )
 

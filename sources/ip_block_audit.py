@@ -2,11 +2,13 @@
 #
 # ip_block_audit.py - audit 02_ip_block.json for inconsistent fields.
 #
-# The block records carry source fields (the RIR delegation record), fields
-# derived from them (the range, the prefix, the UUID, the assigned flag), and
-# a verbatim RDAP answer with a summary drawn from it. Redundancy is useful
-# only while the parts agree, so every derived field is checked against the
-# field it came from.
+# The block records carry source fields (the RIR delegation record), the two
+# derivations that earn their keep (the UUID, which is the join key, and the
+# assigned flag, which encodes a policy), and a verbatim RDAP answer with a
+# summary drawn from it. Redundancy is useful only while the parts agree, so
+# every stored derivation is checked against the field it came from. The end
+# address, the prefix, and the opaque id are no longer stored: each is a
+# function of the record, and a stored derivation can drift out of step.
 #
 # Two kinds of finding, and they mean different things:
 #
@@ -35,7 +37,10 @@ import uuid
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from ip_block_collect import NAMESPACE_BLOCK, block_uuid_make  # noqa: E402
+from ip_block_collect import (  # noqa: E402
+    block_address_end,
+    block_uuid_make,
+)
 from ip_probe_generate import probe_format, probe_parse  # noqa: E402
 
 PATH_REPOSITORY_ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -96,20 +101,6 @@ class Findings:
         return count_error
 
 
-def prefix_expected(value_start: int, value_size: int) -> str | None:
-    """Return the honest CIDR of a block, or None when it is not one.
-
-    A block is a CIDR only when the size is a power of two *and* the start
-    address is aligned to that size. A record of 256 addresses starting at
-    2.2.2.128 is not 2.2.2.128/24: that string names a different range.
-    """
-    if 0 == value_size & (value_size - 1):
-        if 0 == value_start & (value_size - 1):
-            value_bits = value_size.bit_length() - 1
-            return f"{probe_format(value_start)}/{32 - value_bits}"
-    return None
-
-
 def summary_organization_read(document_rdap: dict | None) -> str | None:
     """Return the organization the summary should have extracted."""
     if not isinstance(document_rdap, dict):
@@ -152,7 +143,6 @@ def audit(path_block: pathlib.Path, count_example: int) -> tuple[Findings, dict]
     for document_block in list_block:
         text_uuid = document_block.get("block_uuid")
         document_rir = document_block.get("rir_record", {})
-        document_derived = document_block.get("derived", {})
         document_rdap = document_block.get("rdap", {})
         text_registry = document_rir.get("registry", "")
         text_start = document_rir.get("start", "")
@@ -178,22 +168,11 @@ def audit(path_block: pathlib.Path, count_example: int) -> tuple[Findings, dict]
                 f"{text_uuid} {text_start}",
             )
 
-        # --- fields derived from the record ------------------------------
-        value_end = value_start + value_size - 1
-        text_end_expected = probe_format(value_end)
-        if text_end_expected != document_derived.get("address_end"):
-            findings.error(
-                "derived.address_end disagrees with start+value",
-                f"{text_uuid} {text_start} value={value_size} "
-                f"stored={document_derived.get('address_end')} expected={text_end_expected}",
-            )
-        text_prefix_expected = prefix_expected(value_start, value_size)
-        if text_prefix_expected != document_derived.get("prefix"):
-            findings.error(
-                "derived.prefix is not the block's real CIDR",
-                f"{text_uuid} {text_start} value={value_size} "
-                f"stored={document_derived.get('prefix')!r} expected={text_prefix_expected!r}",
-            )
+        # --- the fields that are still derived ---------------------------
+        # The end address, the prefix, and the opaque id are no longer stored
+        # (see records/02-block-audit-and-map.md), so there is nothing here to
+        # contradict: readers compute them from the record.
+        text_end_expected = probe_format(block_address_end(value_start, value_size))
         text_uuid_expected = block_uuid_make(text_registry, value_start, value_size)
         if text_uuid_expected != text_uuid:
             # The UUID namespace string changed on 2026-09-11, after these
@@ -225,26 +204,10 @@ def audit(path_block: pathlib.Path, count_example: int) -> tuple[Findings, dict]
                 f"{text_uuid} {text_start} status={document_rir.get('status')!r} "
                 f"stored={document_block.get('assigned')}",
             )
-        list_extension = document_rir.get("extensions") or [""]
-        text_opaque = list_extension[0] if list_extension else ""
-        if text_opaque.startswith("opaque-id="):
-            text_opaque = text_opaque.split("=", 1)[1]
-        if text_opaque != document_derived.get("opaque_id", ""):
-            findings.error(
-                "derived.opaque_id disagrees with rir_record.extensions",
-                f"{text_uuid} {text_start} stored={document_derived.get('opaque_id')!r} "
-                f"extension={list_extension[0]!r}",
-            )
-
         # --- RDAP: the wrapper against the document ----------------------
         text_status = document_rdap.get("status")
         document_document = document_rdap.get("document")
         if document_rdap:
-            if document_rdap.get("query") != text_start:
-                findings.error(
-                    "rdap.query is not the block start address",
-                    f"{text_uuid} {text_start} query={document_rdap.get('query')}",
-                )
             if 200 == text_status and not isinstance(document_document, dict):
                 findings.error(
                     "rdap.status is 200 but the document is missing",
@@ -304,7 +267,7 @@ def audit(path_block: pathlib.Path, count_example: int) -> tuple[Findings, dict]
             if dict_summary.get("start_address") != text_start:
                 findings.note(
                     "RDAP answered with a parent object, not this block",
-                    f"{text_uuid} {text_start}-{document_derived.get('address_end')} "
+                    f"{text_uuid} {text_start}-{text_end_expected} "
                     f"rdap={dict_summary.get('start_address')}-{dict_summary.get('end_address')}",
                 )
             text_country_rir = document_rir.get("country") or ""
@@ -342,54 +305,6 @@ def audit(path_block: pathlib.Path, count_example: int) -> tuple[Findings, dict]
     return findings, dict_count
 
 
-def repair(path_block: pathlib.Path, count_example: int) -> dict[str, int]:
-    """Rewrite the derived fields that disagree with their source fields.
-
-    Only fields with one unambiguous correct value are repaired: the end
-    address and the prefix, both functions of the record's start and size.
-    The UUID is never touched, because the probe-to-block file and the
-    characterization refer to it; a UUID that no longer matches its rule is
-    reported for a decision, not silently rewritten.
-    """
-    with open(path_block, "r", encoding="utf-8") as file_block:
-        list_block = json.load(file_block)
-    dict_change: dict[str, int] = collections.Counter()
-    list_example: list[str] = []
-    for document_block in list_block:
-        document_rir = document_block.get("rir_record", {})
-        document_derived = document_block.get("derived", {})
-        text_start = document_rir.get("start", "")
-        value_size = document_rir.get("value")
-        if not isinstance(value_size, int) or 1 > value_size:
-            continue
-        value_start = probe_parse(text_start)
-        text_end_expected = probe_format(value_start + value_size - 1)
-        if text_end_expected != document_derived.get("address_end"):
-            if len(list_example) < count_example:
-                list_example.append(
-                    f"{text_start} address_end {document_derived.get('address_end')!r} "
-                    f"-> {text_end_expected!r}"
-                )
-            document_derived["address_end"] = text_end_expected
-            dict_change["address_end"] += 1
-        text_prefix_expected = prefix_expected(value_start, value_size)
-        if text_prefix_expected != document_derived.get("prefix"):
-            if len(list_example) < count_example:
-                list_example.append(
-                    f"{text_start} prefix {document_derived.get('prefix')!r} "
-                    f"-> {text_prefix_expected!r}"
-                )
-            document_derived["prefix"] = text_prefix_expected
-            dict_change["prefix"] += 1
-    if dict_change:
-        with open(path_block, "w", encoding="utf-8") as file_block:
-            json.dump(list_block, file_block, indent=4, ensure_ascii=True)
-            file_block.write("\n")
-        for text_example in list_example:
-            print(f"repair: {text_example}")
-    return dict(dict_change)
-
-
 def main(arguments: list[str]) -> int:
     """Run the command line."""
     parser_arguments = argparse.ArgumentParser(
@@ -402,11 +317,6 @@ def main(arguments: list[str]) -> int:
     )
     parser_arguments.add_argument("--example", type=int, default=COUNT_EXAMPLE_DEFAULT)
     parser_arguments.add_argument("--quiet", action="store_true")
-    parser_arguments.add_argument(
-        "--repair",
-        action="store_true",
-        help="rewrite the derived fields that disagree with their source fields",
-    )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     path_block = arguments_parsed.data_directory / "02_ip_block.json"
@@ -415,13 +325,6 @@ def main(arguments: list[str]) -> int:
         return 1
 
     print(f"audit: {path_block}")
-    if arguments_parsed.repair:
-        dict_change = repair(path_block, arguments_parsed.example)
-        for text_key, value_count in sorted(dict_change.items()):
-            print(f"repair: {text_key}={value_count}")
-        if not dict_change:
-            print("repair: nothing to repair")
-        print()
     findings, dict_count = audit(path_block, arguments_parsed.example)
     count_error = findings.report(arguments_parsed.quiet)
     print()

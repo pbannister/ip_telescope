@@ -49,8 +49,7 @@ cat > "$DIRECTORY_DATA/02_ip_block.json" <<'FIXTURE'
             "date": "20100712",
             "status": "allocated",
             "extensions": ["opaque-1"]
-        },
-        "derived": {"address_end": "2.2.255.255", "prefix": "2.2.0.0/16", "opaque_id": ""}
+        }
     },
     {
         "block_uuid": "22222222-2222-5222-8222-222222222222",
@@ -65,8 +64,7 @@ cat > "$DIRECTORY_DATA/02_ip_block.json" <<'FIXTURE'
             "date": "",
             "status": "reserved",
             "extensions": [""]
-        },
-        "derived": {"address_end": "23.131.3.255", "prefix": null, "opaque_id": ""}
+        }
     }
 ]
 FIXTURE
@@ -202,11 +200,6 @@ for index_block in range(5):
                 "date": "20100101",
                 "status": "allocated",
                 "extensions": [""],
-            },
-            "derived": {
-                "address_end": f"23.191.15{index_block}.255",
-                "prefix": None,
-                "opaque_id": "",
             },
         }
     )

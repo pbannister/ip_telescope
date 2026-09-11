@@ -36,9 +36,24 @@ They will imitate group 1 or group 2 when noticed, which is why a
 convincing default page is not evidence of innocence.
 
 **4. Other.** Not local folk.
-This explanation is admissible, it is the reason the project exists, and it
-is the one most likely to be reached by wishful thinking rather than
-evidence.
+This explanation is admissible, and it is the reason the project exists.
+
+**Nothing is expected of it (owner, 2026-09-11).** The project keeps no list
+of signatures to look for, because nobody knows what would be there to find;
+holding a pattern in advance would be inventing the answer. An earlier draft
+of this document did list four supposed signatures — light-speed latency, an
+answer to a challenge generated after the run, content with no human
+provenance, and identical behaviour across unrelated registries — and the
+owner rejected that, correctly: they are guesses dressed as criteria, and
+each one invites reading a coincidence as a conclusion.
+
+What the project can do instead is **eliminate**. Every test that rules an
+Earth-bound reading in or out narrows the space: distance by the light-speed
+floor, identity by certificates and reverse DNS, origin by the routing layer,
+custody by the registry. A case that survives all of them and still resists
+explanation is recorded as **unexplained**, with the measurement that is
+missing named. That is the honest end state, and it is where the fourth
+explanation has to live until something arrives that fits nothing else.
 
 ## Where To Look
 
@@ -67,7 +82,7 @@ until the characterization criteria are trusted.
 | 1 Curious | To be found, or to watch who looks | A range that answers, not a pattern: the probes fell inside a block the other party already monitors. Deliberate, self-explanatory where they choose to speak, uniform across their range, stable between passes; a named certificate | Content that explains its own purpose or engages the pattern; identical answers from every address in the monitored range; evidence of awareness that the range is being probed | Expecting the exercise to show in the address pattern. A monitoring party answers its whole range, which looks exactly like an ordinary host |
 | 2 Incidental | None | Default and catch-all artifacts; only part of the block answers; a boundary or an announcement explains it | Any `Host` header gets the same answer; a default-page fingerprint; a certificate naming an unrelated domain; reverse DNS pointing at a hosting provider; the live range matching an allocation boundary | A stale registry record looks exactly like an accident, and is a different story |
 | 3 Nefarious | To hide | Mimicry of 1 or 2, with the layers disagreeing; behaviour that changes between passes | The application claims one identity while certificate, reverse DNS, or registry origin claim another; refusals and resets instead of answers; answering only under some probe patterns; hosting where no registry owner exists | Assuming concealment where a configuration accident would do; and assuming innocence because the page looks official |
-| 4 Other | Unknown | A capability we cannot reproduce | Latency below the light-speed bound for the claimed distance; an answer to a challenge generated after the run; content with no human provenance; the same behaviour in unrelated registries at the same moment | Every hoax, and every measurement error, lands here first |
+| 4 Other | Unknown | **None.** No signature is expected and none is assumed; the category is what remains once the other three are ruled out | Nothing in the way of a pattern. What moves a case here is surviving every Earth-bound reading, with a measurement nobody can reproduce | Reading an unexplained feature as this explanation. Every hoax, and every measurement error, arrives here first |
 
 ## The Discriminating Tests
 
@@ -118,18 +133,22 @@ The tests are ordered by how much they discriminate per unit of effort.
   not where it says it is.
 - **The light-speed test.** Compare the smallest round trip with the floor for
   each plausible distance, then repeat it from a second vantage point far
-  away. A floor on a quantum, with almost no jitter, that does not move when
-  the observer does, is the only measurement that supports the fourth
-  explanation. See the section above for the arithmetic and for what a
-  timeout does and does not prove.
-- **The impossibility test.** Reserved for group 4, and the only test that
-  can support it: a measurement no Earth-bound explanation reproduces.
+  away. That is a rule-out, not a detection: it can show that a responder is
+  not at a distance, and it leaves the case unexplained rather than promoting
+  it.
+- **Elimination, not detection.** There is no test that detects the fourth
+  explanation, because no signature for it is expected. The tests earn their
+  place by removing Earth-bound readings one at a time; a case that survives
+  them all is recorded as unexplained, with the missing measurement named.
+  Anyone who writes a pattern list for the fourth explanation is guessing.
 
 ## Light-Speed Signatures
 
-The fourth explanation has one class of evidence the others cannot produce:
-a measurement that no Earth-bound arrangement reproduces. Distance is the
-cheapest such measurement, because light takes time and nothing beats it.
+Distance is the cheapest hard fact the project has, because light takes time
+and nothing beats it. The comparison below is a **falsifier**: it rules a
+distance out, and it never announces what a case *is*. It is here because it
+eliminates, not because a light-speed latency is expected of the fourth
+explanation — nothing is expected of it (see above).
 
 | Where the responder is | Distance | One round trip at the speed of light |
 | --- | --- | --- |
@@ -264,10 +283,11 @@ what is there.
    probing. That points to group 1.
 5. Test concealment: do the layers disagree, does the behaviour change between
    passes, is the answer a refusal rather than a page? That points to group 3.
-6. Test impossibility, and only then: a floor pinned to a light-speed
-   quantum, with almost no jitter, that does not move when the observer
-   moves. That is the only measurement that points to group 4. A floor
-   merely inside the geosynchronous band points at a long terrestrial path.
+6. Eliminate what can be eliminated: distance with the light-speed floor,
+   identity with certificates and reverse DNS, origin with the routing layer,
+   custody with the registry. Do not hunt for a pattern; there is none to
+   expect for the fourth explanation, and a pattern found in the data is a
+   coincidence until it is a measurement.
 7. Otherwise record **unexplained**, and name the measurement that is missing.
 
 ## How It Is Recorded

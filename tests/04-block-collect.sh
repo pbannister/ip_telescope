@@ -58,11 +58,20 @@ if ! output_collect=$(python3 "$PROGRAM_COLLECT" \
     fail "collector failed: $output_collect"
 fi
 
-python3 - "$DIRECTORY_DATA" <<'PYTHON_CHECK' || fail "phase 2 outputs are wrong"
+python3 - "$DIRECTORY_DATA" "$REPOSITORY_ROOT" <<'PYTHON_CHECK' || fail "phase 2 outputs are wrong"
 import json
 import sys
 
 directory_data = sys.argv[1]
+sys.path.insert(0, sys.argv[2] + "/sources")
+
+from ip_block_collect import block_address_end, block_prefix_text
+from ip_probe_generate import probe_format, probe_parse
+
+
+def prefix_format(value_start, value_size):
+    value_bits = value_size.bit_length() - 1
+    return f"{probe_format(value_start)}/{32 - value_bits}"
 
 
 def load(name):
@@ -84,15 +93,24 @@ assert "ripencc" == block_assigned["rir_record"]["registry"]
 assert "allocated" == block_assigned["rir_record"]["status"]
 assert True is block_assigned["assigned"]
 assert 2 == block_assigned["probe_count"]
-assert "2.2.0.0/16" == block_assigned["derived"]["prefix"]
-assert "2.2.255.255" == block_assigned["derived"]["address_end"]
-assert "8845474d-f97a-46b9-8799-dfbd4416d57d" == block_assigned["derived"]["opaque_id"]
+# The range and the prefix are not stored: they are functions of the record,
+# and a stored derivation can drift (see records/02-block-audit-and-map.md).
+assert "derived" not in block_assigned, block_assigned.keys()
+assert "2.2.0.0/16" == block_prefix_text(probe_parse("2.2.0.0"), 65536)
+assert "2.2.255.255" == probe_format(block_address_end(probe_parse("2.2.0.0"), 65536))
+assert "8845474d-f97a-46b9-8799-dfbd4416d57d" == block_assigned["rir_record"]["extensions"][0]
+
+# A power-of-two size is not a prefix unless the start is aligned to it:
+# 13.168.0.0 with 1,048,576 addresses is not 13.168.0.0/12.
+assert None is block_prefix_text(probe_parse("13.168.0.0"), 1048576)
+assert "13.160.0.0/12" == prefix_format(probe_parse("13.168.0.0") & ~(1048576 - 1), 1048576)
 
 # 3.3.3.0 with 768 addresses is not a power of two, so it has no prefix.
 block_odd = by_start["3.3.3.0"]
 assert 768 == block_odd["rir_record"]["value"]
-assert None is block_odd["derived"]["prefix"]
-assert "3.3.5.255" == block_odd["derived"]["address_end"]
+assert None is block_prefix_text(probe_parse("3.3.3.0"), 768)
+assert "3.3.5.255" == probe_format(block_address_end(probe_parse("3.3.3.0"), 768))
+assert "derived" not in block_odd, block_odd.keys()
 assert 1 == block_odd["probe_count"]
 assert True is block_odd["assigned"]
 

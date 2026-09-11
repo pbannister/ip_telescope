@@ -77,18 +77,21 @@
       program produced them, which made `make enrich` re-run on every
       invocation; the in-place annotation is what the programs do today.
 
-* [ ] decide how to treat the block UUID drift: the namespace string changed
+* [x] decide how to treat the block UUID drift (done 2026-09-11 on the
+      owner's instruction: the phase 2 files were regenerated, so the UUIDs
+      match the rule, and the characterization was remapped). Original note:
+      the namespace string changed
       from `ip_telescope` to `IP_telescope` after the phase 2 files were
       written, so all 9,200 UUIDs no longer match today's derivation rule
       even though the data is internally consistent. Either regenerate the
       phase 2 files (cheap: the RDAP cache refills without network, and the
       characterization would need a repeat pass) or freeze the old namespace
       string. See `records/02-block-audit-and-map.md`.
-* [ ] decide which redundant fields to drop from `02_ip_block.json`;
-      `records/02-block-audit-and-map.md` recommends dropping
-      `derived.address_end`, `derived.prefix`, `derived.opaque_id`, and
-      `rdap.query`, and moving the verbatim RDAP documents to a sidecar file
-      while keeping the summary in place.
+* [x] drop the redundant fields (done 2026-09-11): `derived.address_end`,
+      `derived.prefix`, `derived.opaque_id`, and `rdap.query` are gone.
+* [ ] decide whether to move the verbatim RDAP documents to a sidecar file:
+      they are 159 MB of the 163 MB block file, and the summary is what
+      readers use.
 * [ ] decide whether the block map should be published in full (9,247 pages,
       about 48 MB, re-uploaded on every homelab deploy because each fetched
       page is stamped) or trimmed to the index and the 47 octet pages.

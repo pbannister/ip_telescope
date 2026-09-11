@@ -79,32 +79,14 @@ class BlockRecord:
         """Return True when an operator holds the block."""
         return self.text_status in STATUS_ASSIGNED
 
-    def prefix_text(self) -> str | None:
-        """Return the CIDR prefix, when the block really is one.
-
-        A power-of-two size is not enough: the start address must also be
-        aligned to that size. A record of 1,048,576 addresses starting at
-        13.168.0.0 is not 13.168.0.0/12, because that string names
-        13.160.0.0-13.175.255.255, a different range. Such a block is
-        described by its start and end addresses instead.
-        """
-        if 0 == self.value_size & (self.value_size - 1):
-            if 0 == self.value_start & (self.value_size - 1):
-                value_bits = self.value_size.bit_length() - 1
-                return f"{self.text_start}/{32 - value_bits}"
-        return None
-
-    def opaque_id_text(self) -> str:
-        """Return the registry opaque id, when the record carries one."""
-        for text_extension in self.tuple_extension:
-            if text_extension.startswith("opaque-id="):
-                return text_extension.split("=", 1)[1]
-            if text_extension:
-                return text_extension
-        return ""
-
     def document(self, count_probe: int) -> dict:
-        """Return the JSON document for this block."""
+        """Return the JSON document for this block.
+
+        Only source facts and the join key are stored. The end address, the
+        prefix, and the opaque id were once written here as well; they are
+        functions of the fields below, and a stored derivation can drift, so
+        readers compute them with block_address_end and block_prefix_text.
+        """
         return {
             "block_uuid": self.text_uuid,
             "probe_count": count_probe,
@@ -119,12 +101,30 @@ class BlockRecord:
                 "status": self.text_status,
                 "extensions": list(self.tuple_extension),
             },
-            "derived": {
-                "address_end": probe_format(self.value_end),
-                "prefix": self.prefix_text(),
-                "opaque_id": self.opaque_id_text(),
-            },
         }
+
+
+def block_address_end(value_start: int, value_size: int) -> int:
+    """Return the last address of a block."""
+    return value_start + value_size - 1
+
+
+def block_prefix_text(value_start: int, value_size: int) -> str | None:
+    """Return the CIDR prefix, when the block really is one.
+
+    A power-of-two size is not enough: the start address must also be aligned
+    to that size. A record of 1,048,576 addresses starting at 13.168.0.0 is
+    not 13.168.0.0/12, because that string names 13.160.0.0-13.175.255.255, a
+    different range. Such a block is described by its start and end addresses
+    instead.
+    """
+    if 1 > value_size:
+        return None
+    if 0 == value_size & (value_size - 1):
+        if 0 == value_start & (value_size - 1):
+            value_bits = value_size.bit_length() - 1
+            return f"{probe_format(value_start)}/{32 - value_bits}"
+    return None
 
 
 def block_uuid_make(text_registry: str, value_start: int, value_size: int) -> str:

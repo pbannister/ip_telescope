@@ -54,6 +54,7 @@ import time
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
+from ip_block_collect import block_address_end  # noqa: E402
 from ip_probe_generate import OCTET_PRIME_SET, probe_format, probe_parse  # noqa: E402
 
 PATH_REPOSITORY_ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -118,7 +119,7 @@ def block_list_read(path_block: pathlib.Path) -> list[tuple[int, int, dict]]:
     list_block: list[tuple[int, int, dict]] = []
     for document_block in list_document:
         value_start = probe_parse(document_block["rir_record"]["start"])
-        value_end = probe_parse(document_block["derived"]["address_end"])
+        value_end = block_address_end(value_start, document_block["rir_record"]["value"])
         list_block.append((value_start, value_end, document_block))
     list_block.sort(key=lambda item_block: item_block[0])
     return list_block
@@ -648,7 +649,7 @@ def characterize(options: "CharacterizeOptions") -> dict:
             dict_role_of[text_address] = "anomaly"
         document_block = dict_address_block[list_address_anomaly[0]]
         value_start = probe_parse(document_block["rir_record"]["start"])
-        value_end = probe_parse(document_block["derived"]["address_end"])
+        value_end = block_address_end(value_start, document_block["rir_record"]["value"])
         dict_control = control_address_map(
             value_start,
             value_end,
@@ -718,7 +719,12 @@ def characterize(options: "CharacterizeOptions") -> dict:
                 "registry": document_block["rir_record"]["registry"],
                 "status": document_block["rir_record"]["status"],
                 "start": document_block["rir_record"]["start"],
-                "end": document_block["derived"]["address_end"],
+                "end": probe_format(
+                    block_address_end(
+                        probe_parse(document_block["rir_record"]["start"]),
+                        document_block["rir_record"]["value"],
+                    )
+                ),
                 "size": document_block["rir_record"]["value"],
                 "probe_count": document_block["probe_count"],
                 "anomaly_count": len(dict_block_anomaly[text_uuid]),

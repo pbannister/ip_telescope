@@ -13,7 +13,9 @@ An anomalous `ip_probe` has four admitted explanations:
   configuration.
 * **Nefarious** — local folk who need to hide, and who may imitate the first
   two.
-* **Other** — not local folk.
+* **Other** — not local folk, and nothing is expected of it: the project keeps
+  no signature list for this explanation, because nobody knows what would be
+  there to find (owner, 2026-09-11).
 
 This feature gathers the evidence that separates those explanations, records
 the evidence that would overturn its own conclusion, and keeps the reasoning
@@ -75,7 +77,10 @@ where a later pass can check it.
 * A service that answers on four-prime addresses and not on their neighbours
   must be recorded as deliberate; a service that answers on both must not.
 * A verdict of **other** requires evidence that no Earth-bound explanation
-  reproduces, and must name the measurement that would confirm it.
+  reproduces, and must name the measurement that would confirm it. A verdict
+  of **other** must never rest on a pattern: no signature is expected of that
+  explanation, so a pattern found in the data is a coincidence until it is a
+  measurement.
 * A verdict of **nefarious** requires a disagreement between layers: the
   application says one thing while the certificate, the reverse DNS, or the
   registry says another.
