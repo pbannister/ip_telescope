@@ -231,47 +231,96 @@ map_tree() {
 FILE_TODO="$REPOSITORY_ROOT/TODO.md"
 
 # --- todo.html ---------------------------------------------------------------
+# Nested items stay nested. The renderer tracks indentation as a stack of
+# widths: a deeper item opens a sub-list, a shallower one closes it, and a line
+# at the left margin ends the lists. An indented line that is not an item is
+# continuation text and belongs to the item above it. Completed items are
+# counted, not listed.
 tmp_todo=$(mktemp)
+tmp_items=$(mktemp)
 if [ -f "$FILE_TODO" ]; then
-    open_items=$(awk '
-        /^[*\-] \[ \]/ {
-            if (item) print item_text
-            item = 1
-            line = $0
-            sub(/^[*\-] \[ \] */, "", line)
-            item_text = line
-            next
-        }
-        item && /^[[:space:]]/ {
-            line = $0
-            sub(/^[[:space:]]+/, "", line)
-            item_text = item_text " " line
-            next
-        }
-        item { print item_text; item = 0 }
-        END { if (item) print item_text }
-    ' "$FILE_TODO")
-    open_count=$(printf '%s\n' "$open_items" | grep -c . || true)
-    done_count=$(grep -cE '^[*\-] \[x\]' "$FILE_TODO" || true)
+    count_open=$(grep -cE '^[[:space:]]*[*\-] \[ \]' "$FILE_TODO" || true)
+    count_done=$(grep -cE '^[[:space:]]*[*\-] \[[xX]\]' "$FILE_TODO" || true)
 else
-    open_items=""
-    open_count=0
-    done_count=0
+    count_open=0
+    count_done=0
+fi
+
+if [ -f "$FILE_TODO" ]; then
+    awk '
+        function escape_html(text) {
+            gsub(/&/, "\\&amp;", text)
+            gsub(/</, "\\&lt;", text)
+            gsub(/>/, "\\&gt;", text)
+            return text
+        }
+        function item_body(text) {
+            body = text
+            sub(/^[[:space:]]*[*\-] \[ \][[:space:]]*/, "", body)
+            return escape_html(body)
+        }
+        function list_close() {
+            while (depth > 0) {
+                print "</li>"
+                print "</ul>"
+                depth--
+            }
+        }
+        /^[[:space:]]*[*\-] \[ \]/ {
+            match($0, /^[[:space:]]*/)
+            indent = RLENGTH
+            if (0 == depth) {
+                print "<ul>"
+                depth = 1
+                stack[1] = indent
+                printf "<li>%s", item_body($0)
+            } else if (indent > stack[depth]) {
+                print "<ul>"
+                depth++
+                stack[depth] = indent
+                printf "<li>%s", item_body($0)
+            } else {
+                while (depth > 1 && indent < stack[depth]) {
+                    print "</li>"
+                    print "</ul>"
+                    depth--
+                }
+                if (indent == stack[depth]) {
+                    print "</li>"
+                    printf "<li>%s", item_body($0)
+                } else {
+                    list_close()
+                    print "<ul>"
+                    depth = 1
+                    stack[1] = indent
+                    printf "<li>%s", item_body($0)
+                }
+            }
+            next
+        }
+        depth > 0 && /^[[:space:]]+[^[:space:]]/ {
+            continuation = $0
+            sub(/^[[:space:]]+/, "", continuation)
+            printf " %s", escape_html(continuation)
+            next
+        }
+        depth > 0 && /[^[:space:]]/ {
+            list_close()
+        }
+        END { list_close() }
+    ' "$FILE_TODO" > "$tmp_items"
 fi
 
 {
     echo '<h1>Todo</h1>'
-    echo "<p>Condensed from <code>TODO.md</code> at build time: $open_count open item(s), $done_count completed.</p>"
-    if [ -n "$open_items" ]; then
-        echo '<ul>'
-        printf '%s\n' "$open_items" | while IFS= read -r item; do
-            printf '  <li>%s</li>\n' "$(printf '%s' "$item" | html_escape)"
-        done
-        echo '</ul>'
+    echo "<p>Condensed from <code>TODO.md</code> at build time: $count_open open item(s), $count_done completed.</p>"
+    if [ -s "$tmp_items" ]; then
+        cat "$tmp_items"
     else
         echo '<p>No open items.</p>'
     fi
 } > "$tmp_todo"
+rm -f "$tmp_items"
 page 'Todo' "$tmp_todo" "$DIRECTORY_OUTPUT/todo.html"
 rm -f "$tmp_todo"
 
