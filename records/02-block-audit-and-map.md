@@ -113,4 +113,6 @@ The audit answers the question of which redundancy earns its keep.
 
 ## Commits
 
-- `pending` feat: audit the block fields and build the browsable map
+- `0d2942e` feat: audit the block fields and build the browsable map
+- the leak-gate boundary fix in the homelab: `cd97427` fix: do not read a
+  public address as a private one in the leak gate
