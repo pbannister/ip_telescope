@@ -3,14 +3,14 @@
 # Phase 1 test: ip_probe generation (feature 03-probe-generation).
 #
 # Tier: portable for the count, sample, and cross-check assertions.
-# The full-file check is tool-gated on data/01_ip_probe.json existing; that
+# The full-file check is tool-gated on dataflow.out/01_ip_probe.json existing; that
 # file is generated and is not version-controlled.
 #
 set -eu
 
 REPOSITORY_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 PROGRAM_GENERATE="$REPOSITORY_ROOT/sources/ip_probe_generate.py"
-FILE_PROBE="$REPOSITORY_ROOT/data/01_ip_probe.json"
+FILE_PROBE="$REPOSITORY_ROOT/dataflow.out/01_ip_probe.json"
 
 COUNT_PROBE_EXPECTED=7400808
 COUNT_SAMPLE=108
@@ -79,7 +79,7 @@ if [ -f "$FILE_PROBE" ]; then
     fi
     echo "03-probe-generate: full file: $output_full"
 else
-    echo "03-probe-generate: WARN data/01_ip_probe.json absent; run scripts/01-probe-generate.sh"
+    echo "03-probe-generate: WARN dataflow.out/01_ip_probe.json absent; run scripts/01-probe-generate.sh"
 fi
 
 echo '03-probe-generate: ok'

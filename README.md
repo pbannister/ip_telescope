@@ -1,4 +1,4 @@
-# ip_telescope: a telescope pointed at the quiet addresses
+# IP_telescope: pointed at the quiet web
 
 ## Preamble
 
@@ -14,16 +14,15 @@ The character in the story addressed a letter to another star, which vanished in
 In present, we might imagine an alien presence on the web, waiting to be discovered. 
 What sort of clue or anomalous behavior might be a similar proof of intelligence?
 
+We might be looking for hidden-in-plain sight proof of other folk, not us.
+A smart alien probe might connect to the web, and wait to be found.
+That presence might be very ... alien.
+
 Let us compound the speculation.
 What if the speculation of old Greek philosophers were true?
 What if reality was more than what we can sense?
 What if Quantum Mechanics is a hint not an answer?
 What if reality is a fractal web, not a continuous line?
-
-We might be looking for hidden-in-plain sight proof of other folk, not us.
-
-A smart alien probe might connect to the web, and wait to be found.
-That presence might be very ... alien.
 
 If reality is fractal, then perhaps there are intra-space routers on the internet.
 Those routers (and the addresses behind) would be less alien, just unexpected.
@@ -76,47 +75,45 @@ All project features are defined in `prompts/features/` and implemented in `sour
 
 The work proceeds in phases; see `PHASES.md` for the current state.
 
-- Phase 1 — probe generation: `data/01_ip_probe.json`.
-- Phase 2 — block collection: `data/02_ip_block.json`, `data/03_ip_probe.json`, `data/04_ip_probe.json`.
-- Phase 3 — probe observation: `data/05_ip_probe_http.json`.
+- Phase 1 — probe generation: `dataflow.out/01_ip_probe.json`.
+- Phase 2 — block collection: `dataflow.out/02_ip_block.json`, `dataflow.out/03_ip_probe.json`, `dataflow.out/04_ip_probe.json`.
+- Phase 3 — probe observation: `dataflow.out/05_ip_probe_http.json`.
 - Later phases are not yet defined; the criteria for "curious" will be revised as data arrives.
 
 ## The Data Files
 
 | File | Contents | Count | Size |
 | --- | --- | --- | --- |
-| `data/01_ip_probe.json` | every routable four-prime-octet address | 7,400,808 | 147 MB |
-| `data/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 165 MB |
-| `data/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
-| `data/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
-| `data/05_ip_probe_http.json` | one HTTP observation per phase 3 target | 49,572 | 18 MB |
+| `dataflow.out/01_ip_probe.json` | every routable four-prime-octet address | 7,400,808 | 147 MB |
+| `dataflow.out/02_ip_block.json` | RIR blocks holding at least one probe, each with a UUID and its RDAP record | 9,200 | 165 MB |
+| `dataflow.out/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
+| `dataflow.out/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
+| `dataflow.out/05_ip_probe_http.json` | one HTTP observation per phase 3 target | 49,572 | 18 MB |
 
 - Counts verified 2026-09-10 against the RIR delegation files fetched that day.
 - Of the 9,200 probe-bearing blocks, 8,616 are operator-held (`allocated` or `assigned`) and 584 are not (`available` or `reserved`).
 - Every probe falls inside some RIR record; no probe is entirely absent from the registry files.
-- `data/03_ip_probe.json` is large because it repeats the mapping that `data/01` plus `data/02` already imply; it exists so that later phases can stream one file.
-- `data/02_ip_block.json` is large because each block carries its RDAP document verbatim, as the RIR returned it; the delegation fields alone occupy about 6 MB.
+- `dataflow.out/03_ip_probe.json` is large because it repeats the mapping that `dataflow.out/01` plus `dataflow.out/02` already imply; it exists so that later phases can stream one file.
+- `dataflow.out/02_ip_block.json` is large because each block carries its RDAP document verbatim, as the RIR returned it; the delegation fields alone occupy about 6 MB.
 - The 2026-09-10 phase 3 pass over the 49,572 unheld probes answered 99 times, refused 6 times, reset once, and timed out 49,466 times. Every answer sat in a block the registry calls `reserved`; 582 of the 584 unheld blocks were silent.
 - The 2026-09-10 RDAP enrichment answered for 8,556 of the 9,200 blocks and returned `404` (no object) for 27. It left 617 unanswered: `rdap.afrinic.net` was unreachable from the owning host, and the other registries answered `429` once the run pressed them. An unanswered address is not treated as answered, so a later run asks again.
 - The loudest answer, `23.191.149.0/24`, sits inside ARIN's own reserved space: RDAP records no operator for the block, only its parent `23.0.0.0/8`, which ARIN holds itself, yet 98 probes there answered with an nginx `301`. The refusing addresses in `199.47.160.0/21` sit in a block ARIN has no RDAP object for at all.
 
 ## Running the Project
 
-- `make probes` writes `data/01_ip_probe.json`.
-- `make blocks` fetches the RIR delegation files into `data/raw/` and writes the phase 2 files. Add `--refresh` to fetch again: `sh scripts/02-block-collect.sh --refresh`.
-- `make enrich` adds the RIR RDAP record to every collected block, caching each answer in `data/raw/RDAP-CACHE.jsonl`. Use `--limit N` for a trial; the lookup is rate limited by `--rate` requests per second.
-- `make observe` runs phase 3 over `data/04_ip_probe.json`. Use `--limit` for a trial run.
+- `make probes` writes `dataflow.out/01_ip_probe.json`.
+- `make blocks` fetches the RIR delegation files into `dataflow.out/raw/` and writes the phase 2 files. Add `--refresh` to fetch again: `sh scripts/02-block-collect.sh --refresh`.
+- `make enrich` adds the RIR RDAP record to every collected block, caching each answer in `dataflow.out/raw/RDAP-CACHE.jsonl`. Use `--limit N` for a trial; the lookup is rate limited by `--rate` requests per second.
+- `make observe` runs phase 3 over `dataflow.out/04_ip_probe.json`. Use `--limit` for a trial run.
 - `make test` runs every test; the phase tests are portable and need no network.
 - `make site` builds the project pages.
 
-## Data Directory (owner override)
+## Data Directory
 
-The skeleton writes generated data to `dataflow.out/`.
-This project keeps its generated data in `data/` instead, as the owner
-specified, and ignores it in git:
+This project keeps generated data in `dataflow.out/`, and ignores it in git:
 
-- `data/0*.json` are generated outputs.
-- `data/raw/` is the RIR download cache, with `SHA256SUMS` and `FETCHED-AT.txt` recording what was fetched.
+- `dataflow.out/0*.json` are generated outputs.
+- `dataflow.out/raw/` is the RIR download cache, with `SHA256SUMS` and `FETCHED-AT.txt` recording what was fetched.
 - Both are reproducible from `sources/` and the RIR sources; the versions that matter are pinned in the outcome records.
 
 ## Conduct
@@ -137,8 +134,8 @@ specified, and ignores it in git:
 - `sources/` contains implementations: one program per phase.
 - `scripts/` contains project scripts, one per phase, numbered in phase order.
 - `tests/` contains tests and validation code.
-- `data/` contains the probe list, the collected blocks, and the observations (not version-controlled).
-- `data/raw/` contains the fetched RIR delegation files (not version-controlled).
+- `dataflow.out/` contains the probe list, the collected blocks, and the observations (not version-controlled).
+- `dataflow.out/raw/` contains the fetched RIR delegation files (not version-controlled).
 - `logs/` contains generated logs (not version-controlled).
 - `site.in/` contains static-site input.
 - `site.out/` contains generated static-site output (not version-controlled).

@@ -15,7 +15,7 @@ digest of the body, and how long the exchange took.
 
 ## Requirements
 
-* The input must be `data/04_ip_probe.json`, the probes that are not inside
+* The input must be `dataflow.out/04_ip_probe.json`, the probes that are not inside
   an operator-held block.
 * Each target must receive one `GET /` request over TCP to the configured
   port, default 80.
@@ -39,12 +39,12 @@ digest of the body, and how long the exchange took.
 ## Behavior
 
 * `sh scripts/03-probe-observe.sh` observes every target in
-  `data/04_ip_probe.json` and writes `data/05_ip_probe_http.json`.
+  `dataflow.out/04_ip_probe.json` and writes `dataflow.out/05_ip_probe_http.json`.
 * `sh scripts/03-probe-observe.sh --limit 100` observes the first 100
   targets, which supports a trial run.
 * `--thread` sets the number of concurrent requests; `--timeout` sets the
   seconds allowed per request.
-* `data/05_ip_probe_http.json` is an object with `observed_at`,
+* `dataflow.out/05_ip_probe_http.json` is an object with `observed_at`,
   `parameters`, `counts`, and `observations`.
 * Each entry of `observations` is one target; `counts` maps outcome class to
   the number of targets with that class.
@@ -54,4 +54,4 @@ digest of the body, and how long the exchange took.
 ## Dependencies
 
 * `03-probe-generation.md` — supplies the probe list.
-* `04-block-collection.md` — supplies `data/04_ip_probe.json`.
+* `04-block-collection.md` — supplies `dataflow.out/04_ip_probe.json`.

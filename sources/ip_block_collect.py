@@ -3,7 +3,7 @@
 # ip_block_collect.py - phase 2: map ip_probe addresses onto RIR address blocks.
 #
 # Inputs:
-#   data/raw/delegated-<registry>-extended-latest
+#   dataflow.out/raw/delegated-<registry>-extended-latest
 #       The five RIR delegation files (ARIN, RIPE NCC, APNIC, LACNIC,
 #       AFRINIC) in extended record format:
 #       registry|country|type|start|value|date|status|extension...
@@ -24,7 +24,7 @@
 #
 # Usage:
 #   python3 sources/ip_block_collect.py
-#   python3 sources/ip_block_collect.py --raw-directory data/raw --data-directory data
+#   python3 sources/ip_block_collect.py --raw-directory dataflow.out/raw --data-directory data
 #
 """Collect RIR address blocks for the ip_probe list (phase 2)."""
 
@@ -53,7 +53,9 @@ STATUS_ASSIGNED = frozenset(("allocated", "assigned"))
 
 # Namespace for block UUIDs. The URL is a stable project name, not a
 # fetched resource.
-NAMESPACE_BLOCK = uuid.uuid5(uuid.NAMESPACE_URL, "https://labs.bannister.us/ip_telescope/block")
+NAMESPACE_BLOCK = uuid.uuid5(
+    uuid.NAMESPACE_URL, "https://labs.bannister.us/IP_telescope/block"
+)
 
 
 @dataclasses.dataclass(slots=True)
@@ -127,7 +129,9 @@ def block_records_read(path_directory_raw: pathlib.Path) -> list[BlockRecord]:
     """Read every IPv4 record of every RIR delegation file, sorted by start."""
     list_block: list[BlockRecord] = []
     for text_registry in REGISTRY_ALL:
-        path_file = path_directory_raw / FILE_RAW_TEMPLATE.format(registry=text_registry)
+        path_file = path_directory_raw / FILE_RAW_TEMPLATE.format(
+            registry=text_registry
+        )
         if not path_file.is_file():
             raise FileNotFoundError(f"missing delegation file: {path_file}")
         with open(path_file, "r", encoding="ascii", errors="replace") as file_raw:
@@ -169,22 +173,33 @@ def probe_block_iter(
     index_block = 0
     count_block = len(list_block)
     for value_probe in probe_count_read(path_probe):
-        while index_block < count_block and list_block[index_block].value_end < value_probe:
+        while (
+            index_block < count_block
+            and list_block[index_block].value_end < value_probe
+        ):
             index_block += 1
         record_block = None
         if index_block < count_block:
             record_candidate = list_block[index_block]
-            if record_candidate.value_start <= value_probe <= record_candidate.value_end:
+            if (
+                record_candidate.value_start
+                <= value_probe
+                <= record_candidate.value_end
+            ):
                 record_block = record_candidate
         yield value_probe, record_block
 
 
-def collect(path_directory_raw: pathlib.Path, path_directory_data: pathlib.Path) -> dict[str, int]:
+def collect(
+    path_directory_raw: pathlib.Path, path_directory_data: pathlib.Path
+) -> dict[str, int]:
     """Write the phase 2 outputs and return their counts."""
     list_block = block_records_read(path_directory_raw)
     path_probe = path_directory_data / "01_ip_probe.json"
     if not path_probe.is_file():
-        raise FileNotFoundError(f"missing probe file: {path_probe}; run scripts/01-probe-generate.sh")
+        raise FileNotFoundError(
+            f"missing probe file: {path_probe}; run scripts/01-probe-generate.sh"
+        )
 
     dict_probe_count: dict[str, int] = {}
     list_block_hit: list[BlockRecord] = []
@@ -238,7 +253,9 @@ def collect(path_directory_raw: pathlib.Path, path_directory_data: pathlib.Path)
         for index_block, record_block in enumerate(list_block_hit):
             if 0 < index_block:
                 file_block.write(",\n")
-            document_block = record_block.document(dict_probe_count[record_block.text_uuid])
+            document_block = record_block.document(
+                dict_probe_count[record_block.text_uuid]
+            )
             file_block.write(block_json_text(document_block))
         file_block.write("\n]\n")
 
@@ -277,7 +294,9 @@ def main(arguments: list[str]) -> int:
     arguments_parsed = parser_arguments.parse_args(arguments)
 
     try:
-        dict_count = collect(arguments_parsed.raw_directory, arguments_parsed.data_directory)
+        dict_count = collect(
+            arguments_parsed.raw_directory, arguments_parsed.data_directory
+        )
     except (FileNotFoundError, ValueError) as error_collect:
         print(f"collect: FAIL: {error_collect}", file=sys.stderr)
         return 1

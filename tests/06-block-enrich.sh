@@ -182,7 +182,7 @@ esac
 DIRECTORY_DEAD="$DIRECTORY_TEST/dead"
 mkdir -p "$DIRECTORY_DEAD/data" "$DIRECTORY_DEAD/raw"
 
-python3 - "$DIRECTORY_DEAD/data/02_ip_block.json" <<'PYTHON_FIXTURE'
+python3 - "$DIRECTORY_DEAD/dataflow.out/02_ip_block.json" <<'PYTHON_FIXTURE'
 import json
 import sys
 
@@ -234,7 +234,7 @@ case "$output_dead" in
     *) fail "dead service was not closed: $output_dead" ;;
 esac
 
-python3 - "$DIRECTORY_DEAD/data/02_ip_block.json" <<'PYTHON_CHECK' || fail "dead-service run is wrong"
+python3 - "$DIRECTORY_DEAD/dataflow.out/02_ip_block.json" <<'PYTHON_CHECK' || fail "dead-service run is wrong"
 import json
 import sys
 

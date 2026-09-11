@@ -19,14 +19,14 @@
 # four-prime address can fall inside it. The exclusion list is kept whole
 # anyway, so the rule reads as the routing rule it is.
 #
-# Output (default): data/01_ip_probe.json
+# Output (default): dataflow.out/01_ip_probe.json
 #   A JSON array of dotted-quad strings, ascending, one address per line.
 #
 # Usage:
-#   python3 sources/ip_probe_generate.py --output data/01_ip_probe.json
+#   python3 sources/ip_probe_generate.py --output dataflow.out/01_ip_probe.json
 #   python3 sources/ip_probe_generate.py --count-only
 #   python3 sources/ip_probe_generate.py --first 1000 --output /tmp/sample.json
-#   python3 sources/ip_probe_generate.py --verify data/01_ip_probe.json
+#   python3 sources/ip_probe_generate.py --verify dataflow.out/01_ip_probe.json
 #
 """Generate and verify the ip_probe list (phase 1)."""
 
@@ -120,9 +120,12 @@ def exclusion_tables() -> tuple[frozenset[int], dict[int, tuple[tuple[int, int],
                 octet_excluded.add(value_first + offset)
         else:
             value_first = value_network >> (3 * BITS_OCTET)
-            prefix_narrow.setdefault(value_first, []).append((value_mask, value_network))
+            prefix_narrow.setdefault(value_first, []).append(
+                (value_mask, value_network)
+            )
     return frozenset(octet_excluded), {
-        value_first: tuple(block_list) for value_first, block_list in prefix_narrow.items()
+        value_first: tuple(block_list)
+        for value_first, block_list in prefix_narrow.items()
     }
 
 
@@ -178,8 +181,7 @@ def probe_iter(count_limit: int | None = None) -> Iterator[int]:
 def probe_format(value_address: int) -> str:
     """Return the dotted-quad text of an address."""
     return ".".join(
-        str((value_address >> shift) & VALUE_OCTET_MAX)
-        for shift in (24, 16, 8, 0)
+        str((value_address >> shift) & VALUE_OCTET_MAX) for shift in (24, 16, 8, 0)
     )
 
 
@@ -216,7 +218,9 @@ def probe_write(path_probe: pathlib.Path, count_limit: int | None = None) -> int
     return count_written
 
 
-def probe_verify(path_probe: pathlib.Path, count_limit: int | None = None) -> tuple[int, int, int]:
+def probe_verify(
+    path_probe: pathlib.Path, count_limit: int | None = None
+) -> tuple[int, int, int]:
     """Verify a probe file; return (count, first, last) or raise ValueError."""
     count_read = 0
     value_previous = -1
@@ -224,7 +228,9 @@ def probe_verify(path_probe: pathlib.Path, count_limit: int | None = None) -> tu
     value_last = -1
     for value_address in probe_count_read(path_probe):
         if not probe_is_valid(value_address):
-            raise ValueError(f"not a routable four-prime address: {probe_format(value_address)}")
+            raise ValueError(
+                f"not a routable four-prime address: {probe_format(value_address)}"
+            )
         if value_address <= value_previous:
             raise ValueError(f"address not ascending: {probe_format(value_address)}")
         if count_read == 0:
@@ -236,7 +242,9 @@ def probe_verify(path_probe: pathlib.Path, count_limit: int | None = None) -> tu
         if count_read != count_limit:
             raise ValueError(f"expected {count_limit} addresses, found {count_read}")
     elif count_read != COUNT_PROBE_EXPECTED:
-        raise ValueError(f"expected {COUNT_PROBE_EXPECTED} addresses, found {count_read}")
+        raise ValueError(
+            f"expected {COUNT_PROBE_EXPECTED} addresses, found {count_read}"
+        )
     return count_read, value_first, value_last
 
 
@@ -249,7 +257,7 @@ def main(arguments: list[str]) -> int:
         "--output",
         type=pathlib.Path,
         default=PATH_OUTPUT_DEFAULT,
-        help="probe file to write (default: data/01_ip_probe.json)",
+        help="probe file to write (default: dataflow.out/01_ip_probe.json)",
     )
     parser_arguments.add_argument(
         "--count-only",

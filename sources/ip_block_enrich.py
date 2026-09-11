@@ -9,7 +9,7 @@
 # For every block in <data>/02_ip_block.json this program asks the
 # authoritative RDAP service for the block start address and stores the
 # response verbatim under an "rdap" key, next to a small summary. Answers
-# are cached in data/raw/RDAP-CACHE.jsonl, so an interrupted or repeated run
+# are cached in dataflow.out/raw/RDAP-CACHE.jsonl, so an interrupted or repeated run
 # does not ask the registries twice.
 #
 # Usage:
@@ -39,7 +39,7 @@ URL_BOOTSTRAP = "https://data.iana.org/rdap/ipv4.json"
 FILE_BOOTSTRAP = "RDAP-BOOTSTRAP-IPV4.json"
 FILE_CACHE = "RDAP-CACHE.jsonl"
 
-TEXT_USER_AGENT = "ip_telescope/0.1 (block enrichment; contact via project owner)"
+TEXT_USER_AGENT = "IP_telescope/0.1 (block enrichment; contact via project owner)"
 COUNT_WORKER_DEFAULT = 8
 VALUE_RATE_DEFAULT = 5.0
 SECONDS_TIMEOUT_DEFAULT = 15.0
@@ -86,7 +86,10 @@ class ServiceGate:
             count_failure = self.dict_count.get(text_service, 0) + 1
             self.dict_count[text_service] = count_failure
             self.dict_reason[text_service] = text_reason
-            if self.count_limit <= count_failure and text_service not in self.set_blocked:
+            if (
+                self.count_limit <= count_failure
+                and text_service not in self.set_blocked
+            ):
                 self.set_blocked.add(text_service)
                 print(
                     f"enrich: service closed after {count_failure} failures "
@@ -112,7 +115,9 @@ class RateLimiter:
             time.sleep(seconds_delay)
 
 
-def bootstrap_service_read(path_directory_raw: pathlib.Path) -> list[tuple[int, int, str]]:
+def bootstrap_service_read(
+    path_directory_raw: pathlib.Path,
+) -> list[tuple[int, int, str]]:
     """Return (mask, network, service) from the IANA RDAP bootstrap."""
     path_file = path_directory_raw / FILE_BOOTSTRAP
     if not path_file.is_file():
@@ -120,7 +125,9 @@ def bootstrap_service_read(path_directory_raw: pathlib.Path) -> list[tuple[int, 
         request_bootstrap = urllib.request.Request(
             URL_BOOTSTRAP, headers={"User-Agent": TEXT_USER_AGENT}
         )
-        with urllib.request.urlopen(request_bootstrap, timeout=SECONDS_TIMEOUT_DEFAULT) as response:
+        with urllib.request.urlopen(
+            request_bootstrap, timeout=SECONDS_TIMEOUT_DEFAULT
+        ) as response:
             path_file.write_bytes(response.read())
     with open(path_file, "r", encoding="utf-8") as file_bootstrap:
         document = json.load(file_bootstrap)
@@ -138,7 +145,9 @@ def bootstrap_service_read(path_directory_raw: pathlib.Path) -> list[tuple[int, 
 
 
 def service_choose(
-    value_address: int, list_service: list[tuple[int, int, str]], text_service_force: str | None
+    value_address: int,
+    list_service: list[tuple[int, int, str]],
+    text_service_force: str | None,
 ) -> str | None:
     """Return the RDAP service for an address."""
     if text_service_force is not None:
@@ -149,11 +158,11 @@ def service_choose(
     return None
 
 
-def rdap_query(
-    text_service: str, text_address: str, value_timeout: float
-) -> dict:
+def rdap_query(text_service: str, text_address: str, value_timeout: float) -> dict:
     """Return one RDAP answer as a cache record."""
-    moment_now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    moment_now = datetime.datetime.now(datetime.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
     text_url = f"{text_service.rstrip('/')}/ip/{text_address}"
     record_answer = {
         "address": text_address,
@@ -169,14 +178,18 @@ def rdap_query(
         headers={"User-Agent": TEXT_USER_AGENT, "Accept": "application/rdap+json"},
     )
     try:
-        with urllib.request.urlopen(request_rdap, timeout=value_timeout) as response_rdap:
+        with urllib.request.urlopen(
+            request_rdap, timeout=value_timeout
+        ) as response_rdap:
             record_answer["status"] = response_rdap.status
             record_answer["document"] = json.loads(response_rdap.read().decode("utf-8"))
     except urllib.error.HTTPError as error_http:
         record_answer["status"] = error_http.code
         record_answer["error"] = f"HTTPError: {error_http.code}"
         # A 429 or 503 carries the wait the registry wants; honor it.
-        text_retry = error_http.headers.get("Retry-After") if error_http.headers else None
+        text_retry = (
+            error_http.headers.get("Retry-After") if error_http.headers else None
+        )
         if text_retry:
             try:
                 record_answer["retry_after"] = float(text_retry)
@@ -281,7 +294,9 @@ def summary_read(document_rdap: dict | None) -> dict:
     }
     for dict_event in document_rdap.get("events", []):
         if isinstance(dict_event, dict) and dict_event.get("eventAction"):
-            dict_summary["event"][dict_event["eventAction"]] = dict_event.get("eventDate")
+            dict_summary["event"][dict_event["eventAction"]] = dict_event.get(
+                "eventDate"
+            )
     for dict_entity in document_rdap.get("entities", []):
         if not isinstance(dict_entity, dict):
             continue
@@ -333,7 +348,9 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
 
     path_file_cache = options.path_directory_raw / FILE_CACHE
     list_service = (
-        [] if options.text_service_force else bootstrap_service_read(options.path_directory_raw)
+        []
+        if options.text_service_force
+        else bootstrap_service_read(options.path_directory_raw)
     )
     dict_cache = {} if options.flag_refresh else cache_read(options.path_directory_raw)
     limiter_rate = RateLimiter(options.value_rate)
@@ -346,8 +363,12 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
     ]
     if options.count_limit is not None:
         list_target = list_target[: options.count_limit]
-    list_address = [document_block["rir_record"]["start"] for document_block in list_target]
-    print(f"enrich: blocks={len(list_block)} cached={len(dict_cache)} query={len(list_address)}")
+    list_address = [
+        document_block["rir_record"]["start"] for document_block in list_target
+    ]
+    print(
+        f"enrich: blocks={len(list_block)} cached={len(dict_cache)} query={len(list_address)}"
+    )
 
     dict_new: dict[str, dict] = {}
     options.path_directory_raw.mkdir(parents=True, exist_ok=True)
@@ -358,7 +379,9 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
             dict_future = {}
             for text_address in list_address:
                 text_service = service_choose(
-                    address_value(text_address), list_service, options.text_service_force
+                    address_value(text_address),
+                    list_service,
+                    options.text_service_force,
                 )
                 if text_service is None:
                     record_answer = {
@@ -370,7 +393,9 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
                         "error": "no RDAP service for address",
                     }
                     dict_new[text_address] = record_answer
-                    file_cache.write(json.dumps(record_answer, ensure_ascii=True) + "\n")
+                    file_cache.write(
+                        json.dumps(record_answer, ensure_ascii=True) + "\n"
+                    )
                     continue
                 dict_future[
                     executor_pool.submit(
@@ -415,7 +440,11 @@ def enrich(options: EnrichOptions) -> dict[str, int]:
         json.dump(list_block, file_block, indent=4, ensure_ascii=True)
         file_block.write("\n")
 
-    dict_result = {"block": len(list_block), "queried": len(list_address), **count_status}
+    dict_result = {
+        "block": len(list_block),
+        "queried": len(list_address),
+        **count_status,
+    }
     if gate_service.set_blocked:
         dict_result["service_closed"] = ",".join(sorted(gate_service.set_blocked))
     return dict_result
@@ -446,9 +475,13 @@ def main(arguments: list[str]) -> int:
     )
     parser_arguments.add_argument("--thread", type=int, default=COUNT_WORKER_DEFAULT)
     parser_arguments.add_argument("--rate", type=float, default=VALUE_RATE_DEFAULT)
-    parser_arguments.add_argument("--timeout", type=float, default=SECONDS_TIMEOUT_DEFAULT)
+    parser_arguments.add_argument(
+        "--timeout", type=float, default=SECONDS_TIMEOUT_DEFAULT
+    )
     parser_arguments.add_argument("--retry", type=int, default=COUNT_RETRY)
-    parser_arguments.add_argument("--retry-wait", type=float, default=SECONDS_RETRY_DEFAULT)
+    parser_arguments.add_argument(
+        "--retry-wait", type=float, default=SECONDS_RETRY_DEFAULT
+    )
     parser_arguments.add_argument("--limit", type=int, default=None)
     parser_arguments.add_argument(
         "--service",
@@ -456,7 +489,9 @@ def main(arguments: list[str]) -> int:
         help="RDAP base URL to use instead of the IANA bootstrap",
     )
     parser_arguments.add_argument(
-        "--refresh", action="store_true", help="ignore the cache and query every block again"
+        "--refresh",
+        action="store_true",
+        help="ignore the cache and query every block again",
     )
     arguments_parsed = parser_arguments.parse_args(arguments)
 

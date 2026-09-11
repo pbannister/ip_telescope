@@ -121,7 +121,7 @@
 
 - RDAP (Registration Data Access Protocol) is the registry query protocol that returns the object behind an address block: handle, name, type, parent handle, addresses, country, organization, events, and remarks.
 - The authoritative RDAP service for an address is chosen from the IANA RDAP bootstrap for IPv4.
-- The project stores each RDAP answer verbatim in `data/02_ip_block.json` under the block's `rdap` key, and caches it in `data/raw/RDAP-CACHE.jsonl`.
+- The project stores each RDAP answer verbatim in `dataflow.out/02_ip_block.json` under the block's `rdap` key, and caches it in `dataflow.out/raw/RDAP-CACHE.jsonl`.
 
 ## Phase
 

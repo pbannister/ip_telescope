@@ -2,10 +2,10 @@
 #
 # 02-block-collect.sh: phase 2 - RIR address blocks for the ip_probe list.
 #
-# Fetches the five RIR delegation files into data/raw/ (once; pass
+# Fetches the five RIR delegation files into dataflow.out/raw/ (once; pass
 # --refresh to fetch them again), records their digests and fetch time,
 # then calls sources/ip_block_collect.py to write
-# data/02_ip_block.json, data/03_ip_probe.json, and data/04_ip_probe.json.
+# dataflow.out/02_ip_block.json, dataflow.out/03_ip_probe.json, and dataflow.out/04_ip_probe.json.
 #
 # Usage:
 #   sh scripts/02-block-collect.sh
@@ -16,7 +16,7 @@ set -eu
 DIRECTORY_SCRIPT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPOSITORY_ROOT=$(CDPATH= cd -- "$DIRECTORY_SCRIPT/.." && pwd)
 
-DIRECTORY_RAW="$REPOSITORY_ROOT/data/raw"
+DIRECTORY_RAW="$REPOSITORY_ROOT/dataflow.out/raw"
 DIRECTORY_DATA="$REPOSITORY_ROOT/data"
 LIST_REGISTRY='afrinic apnic arin lacnic ripencc'
 

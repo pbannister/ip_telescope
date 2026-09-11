@@ -1,7 +1,7 @@
 <h1>Project status</h1>
 
 <p>
-<b>ip_telescope</b> collects information about IPv4 addresses that are
+<b>IP_telescope</b> collects information about IPv4 addresses that are
 curious: addresses whose answers, or whose silence, do not match what the
 registry says should be there.
 </p>
@@ -23,11 +23,11 @@ space no operator holds, each asked one HTTP question. Counts below verified
 </p>
 
 <ul>
-<li>Phase 1 — <code>data/01_ip_probe.json</code> — 7,400,808 probes.</li>
-<li>Phase 2 — <code>data/02_ip_block.json</code> — 9,200 blocks holding probes (8,616 operator-held, 584 not), each with its RIR RDAP record.</li>
-<li>Phase 2 — <code>data/03_ip_probe.json</code> — 7,351,236 probe-to-block pairs.</li>
-<li>Phase 2 — <code>data/04_ip_probe.json</code> — 49,572 probes no operator holds.</li>
-<li>Phase 3 — <code>data/05_ip_probe_http.json</code> — 49,572 observations: 99 answers, 6 refused, 1 reset, 49,466 timeouts.</li>
+<li>Phase 1 — <code>dataflow.out/01_ip_probe.json</code> — 7,400,808 probes.</li>
+<li>Phase 2 — <code>dataflow.out/02_ip_block.json</code> — 9,200 blocks holding probes (8,616 operator-held, 584 not), each with its RIR RDAP record.</li>
+<li>Phase 2 — <code>dataflow.out/03_ip_probe.json</code> — 7,351,236 probe-to-block pairs.</li>
+<li>Phase 2 — <code>dataflow.out/04_ip_probe.json</code> — 49,572 probes no operator holds.</li>
+<li>Phase 3 — <code>dataflow.out/05_ip_probe_http.json</code> — 49,572 observations: 99 answers, 6 refused, 1 reset, 49,466 timeouts.</li>
 </ul>
 
 <p>

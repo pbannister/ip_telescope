@@ -12,8 +12,8 @@ site.out/*
 !logs/.gitkeep
 !site.out/.gitkeep
 
-data/0*.json
-data/raw/*
+dataflow.out/0*.json
+dataflow.out/raw/*
 
-!data/.gitkeep
-!data/raw/.gitkeep
+!dataflow.out/.gitkeep
+!dataflow.out/raw/.gitkeep

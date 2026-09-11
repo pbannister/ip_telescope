@@ -44,7 +44,7 @@ SECONDS_TIMEOUT_DEFAULT = 3.0
 COUNT_BODY_LIMIT = 65536
 COUNT_PREFIX_LIMIT = 256
 
-TEXT_USER_AGENT = "ip_telescope/0.1 (probe observation; contact via project owner)"
+TEXT_USER_AGENT = "IP_telescope/0.1 (probe observation; contact via project owner)"
 
 OUTCOME_RESPONSE = "http_response"
 OUTCOME_REFUSED = "connect_refused"
@@ -82,9 +82,7 @@ def observation_outcome(error_probe: BaseException) -> str:
     return OUTCOME_OTHER
 
 
-def observation_probe(
-    text_address: str, value_port: int, value_timeout: float
-) -> dict:
+def observation_probe(text_address: str, value_port: int, value_timeout: float) -> dict:
     """Return the observation document for one address."""
     moment_start = time.monotonic()
     document_observation = {
@@ -122,7 +120,9 @@ def observation_probe(
         document_observation["body_truncated"] = 0 < len(bytes_extra)
     except BaseException as error_probe:  # noqa: BLE001 - every failure is data
         document_observation["outcome"] = observation_outcome(error_probe)
-        document_observation["error"] = f"{type(error_probe).__name__}: {error_probe}"[:256]
+        document_observation["error"] = f"{type(error_probe).__name__}: {error_probe}"[
+            :256
+        ]
     finally:
         if connection_probe is not None:
             try:
@@ -161,9 +161,13 @@ def observe(
     list_observation: list[dict | None] = [None] * len(list_address)
     flag_interrupted = False
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=count_thread) as executor_pool:
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=count_thread
+    ) as executor_pool:
         dict_future: dict[concurrent.futures.Future, int] = {
-            executor_pool.submit(observation_probe, text_address, value_port, value_timeout): index
+            executor_pool.submit(
+                observation_probe, text_address, value_port, value_timeout
+            ): index
             for index, text_address in enumerate(list_address)
         }
         try:
@@ -198,7 +202,10 @@ def observe(
     return {
         "target": len(list_address),
         "observed": len(list_written),
-        **{f"outcome_{text_key}": value_count for text_key, value_count in count_outcome.items()},
+        **{
+            f"outcome_{text_key}": value_count
+            for text_key, value_count in count_outcome.items()
+        },
     }
 
 
@@ -227,15 +234,21 @@ def main(arguments: list[str]) -> int:
     )
     parser_arguments.add_argument("--port", type=int, default=PORT_DEFAULT)
     parser_arguments.add_argument("--thread", type=int, default=COUNT_THREAD_DEFAULT)
-    parser_arguments.add_argument("--timeout", type=float, default=SECONDS_TIMEOUT_DEFAULT)
+    parser_arguments.add_argument(
+        "--timeout", type=float, default=SECONDS_TIMEOUT_DEFAULT
+    )
     parser_arguments.add_argument(
         "--limit", type=int, default=None, help="observe at most this many targets"
     )
     arguments_parsed = parser_arguments.parse_args(arguments)
 
-    path_probe = arguments_parsed.probe_file or arguments_parsed.data_directory / "04_ip_probe.json"
+    path_probe = (
+        arguments_parsed.probe_file
+        or arguments_parsed.data_directory / "04_ip_probe.json"
+    )
     path_output = (
-        arguments_parsed.output or arguments_parsed.data_directory / "05_ip_probe_http.json"
+        arguments_parsed.output
+        or arguments_parsed.data_directory / "05_ip_probe_http.json"
     )
     if not path_probe.is_file():
         print(f"observe: FAIL: missing target file: {path_probe}", file=sys.stderr)
