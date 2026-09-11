@@ -108,6 +108,7 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 - `make observe` runs phase 3 over `dataflow.out/04_ip_probe.json`. Use `--limit` for a trial run.
 - `make characterize` runs phase 4 over the phase 3 anomalies: the probe battery, plus non-prime control addresses sampled from the same blocks. `--control-count N` sets the sample size, and `--limit N` bounds a trial.
 - `make map` builds the browsable block map into `site.out/`.
+- `make probe-report` builds the per-probe reasoning pages into `site.out/`.
 - `python3 sources/ip_block_audit.py` checks every block for fields that
   contradict the fields they came from; `--repair` rewrites the ones with a
   single correct value.
@@ -207,6 +208,10 @@ repository's generated `site.out/` tree and deploys it:
 - `dashboard.html` — the work-product counts.
 - `findings.html` — **the observed `ip_probe` results**, with the evidence and
   the verdicts for each site that answered.
+- `probes.html` — **every phase 4 probe, with the reasoning**: the index counts
+  what the set has in common, and each of the 106 addresses has its own page
+  with the nine tests applied, what each test saw there, the reading that
+  follows, and the site verdict it inherits. Built by `make probe-report`.
 - `blocks.html` — **the browsable map of the collected blocks**: an index with
   the irregularity classes, then one page per first octet listing every block
   in address order with its status, RDAP state, name, type, organization, and

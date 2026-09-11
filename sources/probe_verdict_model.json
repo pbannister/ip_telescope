@@ -1,0 +1,58 @@
+{
+  "note": "Machine-readable copy of the site verdicts written in records/01-probe-characterization.md. The prose record is authoritative; revise both together. The probe report renders these verdicts on each probe page so that a reader sees what was concluded, by what evidence, and what would overturn it.",
+  "site": [
+    {
+      "block_start": "23.191.137.0",
+      "name": "Site A",
+      "verdict": "Incidental, with curious not excluded",
+      "confidence": "Medium for the verdict; high that this is not concealment",
+      "evidence": [
+        "The answering range is exactly the eight /24s announced by AS400050, and ology.com resolves into it: a named, public, ordinary web host rather than a hidden one.",
+        "One certificate covered 237 addresses and expired in May 2025: an abandoned deployment, not an active watch post.",
+        "The whole range answers with one page and any Host header, which is configuration, not deliberation.",
+        "Group 1 is not excluded: a party watching a range would answer it exactly like this. The awareness test has not been run."
+      ],
+      "falsifier": "Withdrawal of the announcement with the answers persisting would break the reading; evidence of the service reacting to our probes would move it to curious; a renewed certificate and a live site would make it an ordinary service with a stale record.",
+      "record": "../records-01-probe-characterization.html"
+    },
+    {
+      "block_start": "103.241.72.0",
+      "name": "Site B",
+      "verdict": "Two claims: incidental for the anomaly, nefarious for the activity",
+      "confidence": "Medium; abuse of a reseller's host cannot be separated from a deliberate operator without the provider's records",
+      "evidence": [
+        "The /24 is announced by a hosting provider while the delegation file calls the whole /22 reserved: the anomaly itself is a records artifact.",
+        "The activity is not: an automatic redirect page loading car.js, a throwaway domain farm in the certificate (baidu.sina.2022.5508085.com and two siblings), an unconfigured Apache host on the same /24, and no reverse DNS anywhere.",
+        "Nobody needs that combination to be found."
+      ],
+      "falsifier": "A hosting-abuse report, the provider's allocation record, or the content disappearing after a takedown would move the second claim.",
+      "record": "../records-01-probe-characterization.html"
+    },
+    {
+      "block_start": "103.149.23.0",
+      "name": "Site C",
+      "verdict": "Incidental",
+      "confidence": "High",
+      "evidence": [
+        "The /24 is announced by StarHub, Singapore, so the space is operated even though the registry calls it reserved: a stale record.",
+        "No address serves a page: six refuse the connection and the rest time out, which is ordinary filtering on an announced range where no service runs.",
+        "The geography test passes: 170-181 ms is consistent with the announced operator's location."
+      ],
+      "falsifier": "A page appearing on one of these addresses, or a refusal that moves between passes, would reopen the question.",
+      "record": "../records-01-probe-characterization.html"
+    },
+    {
+      "block_start": "199.47.160.0",
+      "name": "Site D",
+      "verdict": "Unexplained, narrowing to incidental",
+      "confidence": "Low; the device that resets is not identified",
+      "evidence": [
+        "The responses come from individually used addresses inside 199.47.167.0/24, which is announced although the containing /21 has neither an announcement nor an RDAP object.",
+        "Two refusals and four resets, scattered as singles and one adjacent pair, look like hosts that exist and reject port 80.",
+        "Nothing identifies the filtering device, so the reading stays open."
+      ],
+      "falsifier": "A traceroute or a measurement from an independent vantage point would place the reset source; a repeat pass would show whether the reset set moves.",
+      "record": "../records-01-probe-characterization.html"
+    }
+  ]
+}

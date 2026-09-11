@@ -1,6 +1,12 @@
 <h1>Observed ip_probe results</h1>
 
 <p>
+Each of the 106 addresses phase 4 examined has <a href="probes.html">its own
+page</a>, with the tests applied, what each test saw, and the reading that
+follows.
+</p>
+
+<p>
 This page records what the project has actually observed: which addresses
 answered, what answered there, and what the evidence supports. The
 <em>expected</em> characterization — the four explanations and the tests that

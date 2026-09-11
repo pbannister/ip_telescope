@@ -117,6 +117,13 @@
 
 ## Recently Completed
 
+* [x] show the work per probe (2026-09-11): `sources/ip_probe_report.py` and
+      `scripts/07-probe-report.sh` write `site.out/probes.html` and one page
+      per phase 4 anomaly, each stating the nine tests, what each test saw
+      there, the reading, and the inherited site verdict. The verdicts come
+      from `sources/probe_verdict_model.json`, the machine-readable copy of
+      the record's conclusions.
+
 * [x] create the project from the skeleton (2026-09-10).
 * [x] phase 1: probe generation, `sources/ip_probe_generate.py` and
       `scripts/01-probe-generate.sh`; `dataflow.out/01_ip_probe.json` written with

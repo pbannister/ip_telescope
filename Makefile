@@ -91,9 +91,13 @@ build:
 map:
 	sh scripts/06-block-map.sh
 
+probe-report:
+	sh scripts/07-probe-report.sh
+
 site:
 	sh scripts/site-build.sh
 	sh scripts/06-block-map.sh
+	sh scripts/07-probe-report.sh
 	sh scripts/site-condense.sh
 
 clean:
@@ -115,4 +119,4 @@ deploy:
 install:
 	@echo '==== No install yet defined'
 
-.PHONY: all probes blocks enrich observe characterize build map site clean test deploy install
+.PHONY: all probes blocks enrich observe characterize build map probe-report site clean test deploy install
