@@ -228,3 +228,4 @@ operation. A 21-minute window is a first data point, not a proof.
 ## Commits
 
 - `4ae326b` feat: characterize the phase 3 anomalies with control probes
+- `fac9fe6` feat: measure light-speed bands and repeat the phase 4 pass
