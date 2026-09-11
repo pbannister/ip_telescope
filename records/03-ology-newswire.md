@@ -208,8 +208,5 @@ registry admits to knowing about.
 
 ## Commits
 
-- `pending` docs: follow the registrant and the application
-
-## Commits
-
 - `4fe3070` docs: investigate ology.com and the block that serves it
+- `7613baf` docs: follow the registrant and the application behind site A
