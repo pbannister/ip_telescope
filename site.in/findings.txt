@@ -23,7 +23,7 @@ what the measurements show, and what would overturn each reading.
 <tr><td>2 — block collection</td><td>9,200 RIR blocks hold at least one probe; 8,616 are operator-held and 584 are not, so 49,572 probes sit where no operator holds address space</td><td>2026-09-10</td></tr>
 <tr><td>2 — RDAP enrichment</td><td>8,556 blocks answered, 27 answered <code>404</code>, 617 unanswered (AFRINIC was unreachable; the other registries rate limited the run)</td><td>2026-09-10</td></tr>
 <tr><td>3 — observation</td><td>49,572 probes asked one HTTP question: 99 answers, 6 refusals, 1 reset, 49,466 timeouts</td><td>2026-09-10</td></tr>
-<tr><td>4 — characterization</td><td>342 targets (106 anomalies and 236 non-prime controls) given the full battery; 241 answered, every answer a catch-all</td><td>2026-09-11</td></tr>
+<tr><td>4 — characterization</td><td>598 targets (106 anomalies, 236 non-prime controls, 256 neighbour addresses); 499 responded; 6 responded alone</td><td>2026-09-11</td></tr>
 </table>
 
 <h2>The four sites that responded</h2>
@@ -82,6 +82,64 @@ that no service exists <em>because</em> of the prime pattern. Separating a
 watcher from an ordinary host needs the awareness test: a response that
 changes because of our probing, a baseline from a second vantage point, or
 content that engages the pattern. None has been observed yet.
+</p>
+
+<h2>Isolation: the strongest hint</h2>
+
+<p>
+The project owner proposed a sharper test on 2026-09-11. A service that
+covers a prefix lights its whole range — an operator's host, a stale registry
+record, and a party watching a block all look the same from outside, because
+they all answer their neighbours. But an address that answers while the two
+addresses immediately beside it stay silent is different in kind: something
+was put on <em>that address</em>, on purpose. That is the shape a post office
+would have.
+</p>
+
+<p>
+So the pass now measures the two immediate neighbours of every responder. On
+2026-09-11 it measured 598 targets, of which 499 responded and <b>6 responded
+alone</b>. Two of the six were addresses the prime pattern never pointed at:
+the pass found them on its own.
+</p>
+
+<table>
+<tr><th>Address</th><th>Answer</th><th>Round trip</th><th>Block</th></tr>
+<tr><td><code>103.149.23.11</code></td><td>refused</td><td>178 ms</td><td>APNIC <code>reserved</code>, announced by StarHub</td></tr>
+<tr><td><code>103.149.23.67</code></td><td>refused</td><td>183 ms</td><td>APNIC <code>reserved</code>, announced by StarHub</td></tr>
+<tr><td><code>199.47.167.2</code></td><td>refused</td><td>79 ms</td><td>ARIN <code>reserved</code>, no RDAP object</td></tr>
+<tr><td><code>199.47.167.22</code></td><td>reset</td><td>80 ms</td><td>ARIN <code>reserved</code>, no RDAP object</td></tr>
+<tr><td><code>199.47.167.100</code></td><td>reset</td><td>79 ms</td><td>ARIN <code>reserved</code>, no RDAP object</td></tr>
+<tr><td><code>199.47.167.103</code></td><td>refused</td><td>80 ms</td><td>ARIN <code>reserved</code>, no RDAP object</td></tr>
+</table>
+
+<p>
+None of the six serves a page: no content, no certificate, no reverse DNS,
+and a round trip that agrees with an operator on the ground. Four of them
+have a small responding cluster two to four addresses away, which is what
+individually used addresses look like — a host that exists and rejects port
+80 — rather than a service covering a range.
+</p>
+
+<p>
+The verdicts did not change, but they sharpened. Site
+<code>103.149.23.0/24</code> is <b>incidental</b>, and now precisely: six
+single addresses in use inside an announced prefix. Site
+<code>199.47.160.0/21</code> stays <b>unexplained, narrowing to incidental</b>:
+the responses come from individually used addresses in
+<code>199.47.167.0/24</code>, announced although the containing <code>/21</code>
+has neither an announcement nor a registry object. No curious-party candidate
+emerged — what emerged is a short list of six addresses worth the next
+measurement: more ports, a traceroute to place the reset source, an exact
+sweep of the two <code>/24</code>s, and a repeat to see whether the six
+persist.
+</p>
+
+<p>
+Checking those ranges turned up the mirror image, recorded as an observation
+and not a finding: inside the live ARIN range — <code>/24</code>s 144 to 151,
+which match the eight announced by AS400050 exactly — six addresses stayed
+silent while everything around them answered.
 </p>
 
 <h2>The light-speed test</h2>

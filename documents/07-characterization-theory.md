@@ -73,6 +73,12 @@ until the characterization criteria are trusted.
 
 The tests are ordered by how much they discriminate per unit of effort.
 
+- **The isolation test.** Probe the two addresses immediately beside every
+  responder. An address that answers while both neighbours stay silent is
+  being *addressed*; anything that covers a prefix is being *ranged*. This is
+  the owner's strongest hint (2026-09-11), it costs two probes per responder,
+  and it is the project's first filter. See the section above for the mundane
+  readings it admits.
 - **The control test.** Probe non-prime neighbours inside the same block. It
   answers two questions, and only two: how far the live range extends around
   an address that answers, and whether the service exists *because* of the
@@ -184,6 +190,39 @@ geosynchronous hop; and a long path through a congested transit network can
 imitate both jitter and distance. Any of those is more likely than the fourth
 explanation, and each is testable.
 
+## The Isolation Test: The Strongest Hint
+
+**Owner hypothesis, 2026-09-11.** The strongest hint of all is an `ip_probe`
+that responds while the two addresses immediately beside it do not.
+
+The reasoning is about *addressing* rather than *ranging*. A service that
+covers a prefix lights its whole range: an operator's host, a stale registry
+record, a monitoring party watching a block, all look the same from outside
+because they all answer the neighbours. A single address lit between two dark
+ones is different in kind: something was put on **that address**, on purpose,
+and nothing was put on the addresses either side.
+
+That is the shape a post office would have. It is also the shape of an
+accident, so the mundane readings come first:
+
+| Mundane reading | How to tell it apart |
+| --- | --- |
+| A single-address assignment (`/32`, or one address out of a larger block handed to a customer) | The registry object: RDAP may show a `/32` or a small assignment, and the block around it may be reserved or unassigned |
+| A virtual address on a load balancer, NAT, or anycast | Ask twice: a VIP or anycast endpoint usually answers from more than one place, and a second vantage point sees a different floor |
+| A host with a firewall rule that admits our probe and drops the rest | Change something small: a different port, a different `Host`, a different time. A rule written for one probe pattern keeps answering that pattern only |
+| A neighbour that is dark *now* but answers later | Repeat the pass. Isolation that flickers is scheduling; isolation that persists is addressing |
+| A probe artefact: the neighbour is routed differently, or it is in another operator's block | Look at the block boundary, and at who announces each of the three addresses |
+
+**The test is cheap and sharp, and it is now the project's first filter.** It
+costs two extra probes per responder, and it divides a long list of "something
+answered" into the small set of "something was placed here", which is the set
+worth an awareness test.
+
+Note what it does *not* do: it does not separate the four explanations by
+itself. An isolated responder may still be an ordinary single-address
+service, and it may be a curious party's post. It says where to look, not
+what is there.
+
 ## The Traps
 
 - **Mimicry.** Group 3 imitates groups 1 and 2, so a tidy default page is not
@@ -210,21 +249,26 @@ explanation, and each is testable.
 
 ## The Decision Procedure
 
-1. Gather the evidence: the probe battery, in one pass, with controls.
-2. Rule out the incumbent shape: does a non-prime neighbour answer too? If it
-   does, the service covers a range, which is what an ordinary host does and
-   also what a monitoring party does. That tells you the live range, not the
-   explanation.
-3. Test deliberation: content that explains itself, answers that vary by
+1. Gather the evidence: the probe battery, in one pass, with controls and with
+   the two immediate neighbours of every responder.
+2. Filter for addressing: does the responder answer alone, with both immediate
+   neighbours silent? Those are the candidates worth the rest of this
+   procedure. Everything that answers its neighbours is a range, and a range
+   is an operator, a stale record, or a watching party — three readings the
+   remaining tests cannot separate.
+3. Rule out the incumbent shape: a range that answers is ordinary; a single
+   lit address needs the mundane readings from the isolation table ruled out
+   one by one.
+4. Test deliberation: content that explains itself, answers that vary by
    address rather than repeating one page, or any sign of awareness of the
    probing. That points to group 1.
-4. Test concealment: do the layers disagree, does the behaviour change between
+5. Test concealment: do the layers disagree, does the behaviour change between
    passes, is the answer a refusal rather than a page? That points to group 3.
-5. Test impossibility, and only then: a floor pinned to a light-speed
+6. Test impossibility, and only then: a floor pinned to a light-speed
    quantum, with almost no jitter, that does not move when the observer
    moves. That is the only measurement that points to group 4. A floor
    merely inside the geosynchronous band points at a long terrestrial path.
-6. Otherwise record **unexplained**, and name the measurement that is missing.
+7. Otherwise record **unexplained**, and name the measurement that is missing.
 
 ## How It Is Recorded
 

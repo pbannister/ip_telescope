@@ -262,6 +262,66 @@ Stability is one of the discriminators, and these sites are stable, which is
 what the verdicts predict for ordinary services and evidence against a moving
 operation. A 21-minute window is a first data point, not a proof.
 
+## Addendum: the isolation test — 2026-09-11
+
+Owner hypothesis: the strongest hint is an `ip_probe` that responds while the
+two addresses immediately beside it do not. A service that covers a prefix
+lights its whole range; one lit address between two dark ones was *placed*
+there.
+
+The pass now runs a second wave over the immediate neighbours of every
+responder. Pass 3 (2026-09-11T10:06Z) measured 598 targets — 106 anomalies,
+236 controls, and 256 neighbours — in 4m10s. Of those, 499 responded and
+**6 responded alone**.
+
+| Address | Answer | Floor | Block | Neighbours ±1 |
+| --- | --- | --- | --- | --- |
+| `103.149.23.11` | refused | 178 ms | APNIC `reserved`, announced by StarHub | both silent |
+| `103.149.23.67` | refused | 183 ms | APNIC `reserved`, announced by StarHub | both silent |
+| `199.47.167.2` | refused | 79 ms | ARIN `reserved`, no RDAP object | both silent |
+| `199.47.167.22` | reset | 80 ms | ARIN `reserved`, no RDAP object | both silent |
+| `199.47.167.100` | reset | 79 ms | ARIN `reserved`, no RDAP object | both silent |
+| `199.47.167.103` | refused | 80 ms | ARIN `reserved`, no RDAP object | both silent |
+
+Two of the six were addresses phase 3 never probed: phase 4 found them as
+controls. That is the filter doing its job — it is not limited to the
+addresses the prime pattern pointed at.
+
+**None of the six serves a page.** Every one refuses or resets, with no
+certificate, no reverse DNS, and a floor consistent with the operator's
+location (StarHub, Singapore; and the AS14902 prefix on the ground).
+
+**The wider neighbourhood, measured, changes the reading.** Four of the six
+have a small responding cluster two to four addresses away: `103.149.23.13`
+and `.14` sit beside `.11`; `103.149.23.70` and `.71` beside `.67`;
+`199.47.167.19` and `.20` beside `.22`; `199.47.167.100` beside `.103`.
+Scattered singles and small adjacent pairs inside an announced prefix are what
+individually used addresses look like — hosts that exist and reject port 80 —
+rather than a service covering a range.
+
+**Verdicts, updated.** Site C (`103.149.23.0/24`) stays **incidental**, now
+more precisely: six single addresses in use within an announced StarHub
+prefix, not a service. Site D (`199.47.160.0/21`) stays **unexplained,
+narrowing to incidental**: the responses come from individually used
+addresses inside `199.47.167.0/24`, which is announced although the
+containing `/21` has neither an announcement nor an RDAP object. No group 1
+candidate emerged; what emerged is a short list worth the next measurement.
+
+**What the filter bought.** All 499 responders reduce to six candidates, in
+two blocks, with named next steps: probe more ports on those six (a host
+usually exposes or refuses others; a deliberate single-address service chose
+port 80), place the reset source with a traceroute, sweep the two `/24`s to
+the address so the isolation is exact rather than sampled, and repeat to see
+whether the six persist.
+
+**The inverse filter, noticed while checking the ranges.** Inside the live
+ARIN range — `/24`s 144 to 151, which match AS400050's eight announced `/24`s
+exactly — six measured addresses stayed silent while everything around them
+answered: `23.191.149.7`, `.149.20`, `.149.255`, `.150.3`, `.151.20`,
+`.151.25`. A dark address inside a lit range is the mirror of the isolation
+test and may be a filter rather than an absence. It is recorded here as an
+observation, not a finding.
+
 ## Commits
 
 - `4ae326b` feat: characterize the phase 3 anomalies with control probes

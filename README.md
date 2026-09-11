@@ -129,14 +129,21 @@ the verdict, the confidence, and the measurement that would overturn it.
 An address that no evidence explains is recorded as **unexplained**, which is
 a result and not a failure.
 
-The control sample is the cheapest test the project has, and it answers two
-questions: how far the live range extends around an address that answers, and
-whether the service exists *because* of the four-prime pattern. It does not
-separate a curious party from an ordinary one: a party watching a range would
-answer every address in it, exactly as an ordinary host would, because the
-probes simply fell inside a block they monitor (owner correction,
-2026-09-11). What would separate them is the awareness test — a response that
-changes because of our probing, or content that engages the pattern.
+The first filter is the **isolation test**. A service that covers a prefix
+lights its whole range, so an address that answers while the two addresses
+immediately beside it stay silent is being *addressed*, not *ranged* —
+something was put on that one address on purpose. It costs two extra probes
+per responder, and it reduces a long list of "something answered" to the
+short list of "something was placed here" (owner hypothesis, 2026-09-11).
+
+The control sample is the next test, and it answers two questions: how far
+the live range extends around an address that answers, and whether the
+service exists *because* of the four-prime pattern. It does not separate a
+curious party from an ordinary one: a party watching a range would answer
+every address in it, exactly as an ordinary host would, because the probes
+simply fell inside a block they monitor (owner correction, 2026-09-11). What
+would separate them is the awareness test — a response that changes because
+of our probing, or content that engages the pattern.
 
 ## Work Products Are Kept
 

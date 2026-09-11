@@ -28,6 +28,18 @@
     * [ ] take more than three latency samples for any address whose floor
           lands in a light-speed band, so the jitter criterion has something
           to measure.
+* [ ] work the isolation list (owner hypothesis, 2026-09-11: the strongest
+      hint is a responder whose two immediate neighbours stay silent). For
+      every isolated responder, rule out the mundane readings one at a time —
+      a single-address assignment, a virtual address on a load balancer or
+      anycast, a firewall rule written for one probe pattern, a neighbour
+      that is dark now and answers later, and a block boundary that routes
+      the three addresses differently. See the isolation table in
+      `documents/07-characterization-theory.md`.
+* [ ] decide whether the isolation filter should also drive phase 5: inside
+      operator-held blocks, `ip_probe` that answer alone are the rogue-host
+      signature, but finding them needs a sampling strategy, since phase 3
+      never probed held space.
 * [ ] revise the characterization criteria as the phase 4 evidence arrives:
       what counts as self-explanation, whether a verdict needs a second
       observation, how to read a service that answers on only some of the
@@ -97,3 +109,8 @@
       collect, enrich, and observe scripts still passed `--data-directory
       data/`, a directory that no longer existed, and the program defaults
       pointed there too.
+* [x] add the isolation test (owner hypothesis, 2026-09-11): the pass now
+      probes the two immediate neighbours of every responder in a second
+      wave, records `isolation.responded`, `isolation.neighbour`, and
+      `isolation.isolated`, and lists every isolated responder in an
+      `isolation_summary` in the result file.

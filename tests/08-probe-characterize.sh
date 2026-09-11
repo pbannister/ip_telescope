@@ -229,6 +229,18 @@ if port_https != port_dead:
 else:
     assert "connect_refused" == anomaly["https"]["outcome"], anomaly["https"]
 
+# The isolation test: on loopback the neighbours answer as well, so this
+# address is ranged rather than addressed, and the signal must say so. A
+# blackhole neighbour is what a positive case needs, and that is not
+# available on the loopback address.
+assert "isolation" in anomaly, anomaly.keys()
+assert True is anomaly["isolation"]["responded"], anomaly["isolation"]
+assert 2 == len(anomaly["isolation"]["neighbour"]), anomaly["isolation"]
+for item_neighbour in anomaly["isolation"]["neighbour"]:
+    assert True is item_neighbour["measured"], item_neighbour
+assert False is anomaly["isolation"]["isolated"], anomaly["isolation"]
+assert "isolation_summary" in document, document.keys()
+
 # The reverse DNS answer is recorded either way; on loopback it is localhost.
 assert "ptr" in anomaly, anomaly.keys()
 PYTHON_CHECK

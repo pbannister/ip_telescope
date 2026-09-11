@@ -31,6 +31,18 @@ where a later pass can check it.
   and what evidence would overturn it.
 * Each anomalous address must be probed together with **control addresses**
   in the same block.
+* The two addresses immediately beside every responder must be probed, in a
+  second wave after the first, so that the isolation test has both sides
+  measured for every responder, including responders the pass found itself.
+* Each observation must record whether the address responded, the outcome of
+  each immediate neighbour, and whether the address responded alone:
+  `isolation.responded`, `isolation.neighbour`, and `isolation.isolated`.
+* An address is isolated only when it responded and *both* neighbours were
+  measured and neither answered. An unmeasured neighbour leaves the question
+  open rather than answering it.
+* The result file must carry an `isolation_summary` listing every isolated
+  responder, so the sharpest filter in the project is visible without
+  post-processing.
 * A control address must be one whose octets are not all prime, because an
   incumbent service answers on every address in its range, while a
   deliberate exercise answers only on the four-prime addresses.

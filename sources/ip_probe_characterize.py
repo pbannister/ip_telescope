@@ -61,6 +61,15 @@ PATH_DATA_DEFAULT = PATH_REPOSITORY_ROOT / "dataflow.out"
 
 OUTCOME_ANOMALY = ("http_response", "connect_refused", "connection_reset")
 
+# A response is anything that is not silence. A refusal or a reset means
+# something on the far side answered, even if it had nothing to say.
+OUTCOME_RESPONDED = OUTCOME_ANOMALY
+
+# The two immediate neighbours, for the isolation test: an address that
+# answers while the addresses either side of it stay silent is being
+# addressed rather than ranged (owner hypothesis, 2026-09-11).
+COUNT_NEIGHBOUR_OFFSET = (-1, 1)
+
 PORT_HTTP_DEFAULT = 80
 PORT_HTTPS_DEFAULT = 443
 COUNT_CONTROL_DEFAULT = 12
@@ -498,6 +507,107 @@ def certificate_covers_ip(document_certificate: dict, text_address: str) -> bool
     return False
 
 
+def answer_responded(document_observation: dict) -> bool:
+    """Return True when the address did anything but stay silent."""
+    return document_observation["http"]["outcome"] in OUTCOME_RESPONDED
+
+
+def probe_wave(
+    list_target: list[str],
+    dict_role_of: dict[str, str],
+    dict_address_block: dict[str, dict],
+    list_block: list[tuple[int, int, dict]],
+    dict_anomaly: dict[str, dict],
+    options: "CharacterizeOptions",
+    text_wave: str,
+) -> list[dict]:
+    """Probe one wave of targets and return its observations."""
+    if not list_target:
+        print(f"characterize: wave {text_wave} has no targets")
+        return []
+    print(f"characterize: wave {text_wave} targets={len(list_target)}")
+    list_observation: list[dict | None] = [None] * len(list_target)
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=options.count_thread
+    ) as executor_pool:
+        dict_future = {
+            executor_pool.submit(address_probe, text_address, options): index_target
+            for index_target, text_address in enumerate(list_target)
+        }
+        count_done = 0
+        for future_probe in concurrent.futures.as_completed(dict_future):
+            index_target = dict_future[future_probe]
+            document_result = future_probe.result()
+            text_address = document_result["address"]
+            document_block = dict_address_block.get(text_address) or block_find(
+                list_block, probe_parse(text_address)
+            )
+            document_result["block_uuid"] = (
+                document_block["block_uuid"] if document_block else None
+            )
+            document_result["phase3_outcome"] = (
+                dict_anomaly.get(text_address, {}).get("outcome")
+            )
+            document_result["role"] = dict_role_of.get(text_address, "control")
+            list_observation[index_target] = document_result
+            count_done += 1
+            if 0 == count_done % 20:
+                print(f"characterize: wave {text_wave} probed {count_done}/{len(list_target)}")
+    return [item for item in list_observation if item is not None]
+
+
+def isolation_apply(list_written: list[dict]) -> list[dict]:
+    """Record, for every address, whether it responded alone.
+
+    This is the owner's strongest hint (2026-09-11): a service that covers a
+    prefix lights its whole range, so one lit address between two dark ones
+    means something was put on that single address, deliberately. The test
+    needs both neighbours measured; an unmeasured neighbour leaves the
+    question open and `isolated` stays false.
+    """
+    dict_by_address = {item["address"]: item for item in list_written}
+    list_isolated: list[dict] = []
+    for document_observation in list_written:
+        value_address = probe_parse(document_observation["address"])
+        list_neighbour: list[dict] = []
+        for value_offset in COUNT_NEIGHBOUR_OFFSET:
+            text_neighbour = probe_format(value_address + value_offset)
+            document_neighbour = dict_by_address.get(text_neighbour)
+            list_neighbour.append(
+                {
+                    "offset": value_offset,
+                    "address": text_neighbour,
+                    "measured": None is not document_neighbour,
+                    "outcome": (
+                        document_neighbour["http"]["outcome"]
+                        if document_neighbour
+                        else None
+                    ),
+                    "responded": (
+                        answer_responded(document_neighbour)
+                        if document_neighbour
+                        else None
+                    ),
+                }
+            )
+        flag_responded = answer_responded(document_observation)
+        list_measured = [item for item in list_neighbour if item["measured"]]
+        flag_isolated = bool(
+            flag_responded
+            and list_measured
+            and len(list_measured) == len(COUNT_NEIGHBOUR_OFFSET)
+            and not any(item["responded"] for item in list_measured)
+        )
+        document_observation["isolation"] = {
+            "responded": flag_responded,
+            "neighbour": list_neighbour,
+            "isolated": flag_isolated,
+        }
+        if flag_isolated:
+            list_isolated.append(document_observation)
+    return list_isolated
+
+
 def characterize(options: "CharacterizeOptions") -> dict:
     """Run the pass and write the result file."""
     path_observation = options.path_data / "05_ip_probe_http.json"
@@ -558,35 +668,46 @@ def characterize(options: "CharacterizeOptions") -> dict:
 
     print(f"characterize: anomaly={len(dict_anomaly)} target={len(list_target)}")
     moment_start = datetime.datetime.now(datetime.timezone.utc)
-    list_observation: list[dict | None] = [None] * len(list_target)
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=options.count_thread
-    ) as executor_pool:
-        dict_future = {
-            executor_pool.submit(address_probe, text_address, options): index_target
-            for index_target, text_address in enumerate(list_target)
-        }
-        count_done = 0
-        for future_probe in concurrent.futures.as_completed(dict_future):
-            index_target = dict_future[future_probe]
-            document_result = future_probe.result()
-            text_address = document_result["address"]
-            document_block = dict_address_block.get(text_address) or block_find(
-                list_block, probe_parse(text_address)
-            )
-            document_result["block_uuid"] = (
-                document_block["block_uuid"] if document_block else None
-            )
-            document_result["phase3_outcome"] = (
-                dict_anomaly.get(text_address, {}).get("outcome")
-            )
-            document_result["role"] = dict_role_of.get(text_address, "control")
-            list_observation[index_target] = document_result
-            count_done += 1
-            if 0 == count_done % 20:
-                print(f"characterize: probed {count_done}/{len(list_target)}")
 
-    list_written = [item for item in list_observation if item is not None]
+    list_written = probe_wave(
+        list_target,
+        dict_role_of,
+        dict_address_block,
+        list_block,
+        dict_anomaly,
+        options,
+        "one",
+    )
+
+    # Wave two: the immediate neighbours of everything that responded, so that
+    # the isolation test has both sides measured for every responder,
+    # including the responders phase 4 found rather than phase 3.
+    list_target_two: list[str] = []
+    set_probed = {item["address"] for item in list_written}
+    for document_result in list_written:
+        if not answer_responded(document_result):
+            continue
+        value_address = probe_parse(document_result["address"])
+        for value_offset in COUNT_NEIGHBOUR_OFFSET:
+            text_neighbour = probe_format(value_address + value_offset)
+            if text_neighbour in set_probed:
+                continue
+            set_probed.add(text_neighbour)
+            dict_role_of[text_neighbour] = f"neighbour_of:{document_result['address']}"
+            list_target_two.append(text_neighbour)
+
+    list_written += probe_wave(
+        list_target_two,
+        dict_role_of,
+        dict_address_block,
+        list_block,
+        dict_anomaly,
+        options,
+        "two",
+    )
+    list_isolated = isolation_apply(list_written)
+    print(f"characterize: responded={sum(1 for item in list_written if answer_responded(item))} isolated={len(list_isolated)}")
+
     list_block_document = []
     for text_uuid in dict_block_anomaly:
         document_block = dict_address_block[dict_block_anomaly[text_uuid][0]]
@@ -629,8 +750,10 @@ def characterize(options: "CharacterizeOptions") -> dict:
                 2000.0 * KM_DISTANCE_MOON_MEAN / KM_PER_SECOND_LIGHT, 1
             ),
             "blind_spot_seconds": options.seconds_timeout,
+            "wave_two_count": len(list_target_two),
         },
         "blocks": list_block_document,
+        "isolation_summary": [isolation_document(item) for item in list_isolated],
         "observations": list_written,
     }
     with open(path_output, "w", encoding="utf-8") as file_output:
@@ -643,9 +766,34 @@ def characterize(options: "CharacterizeOptions") -> dict:
         "control": sum(
             1 for item in list_written if item["role"].startswith("control")
         ),
+        "neighbour": sum(
+            1 for item in list_written if item["role"].startswith("neighbour_of")
+        ),
+        "responded": sum(1 for item in list_written if answer_responded(item)),
+        "isolated": len(list_isolated),
         "answered_http": sum(1 for item in list_written if item["signal"]["answers_http"]),
         "catch_all": sum(1 for item in list_written if item["signal"]["catch_all"]),
         "observed": len(list_written),
+    }
+
+
+def isolation_document(document_observation: dict) -> dict:
+    """Return the short form of an isolated responder, for the summary."""
+    document_certificate = document_observation["https"].get("certificate") or {}
+    list_subject = document_certificate.get("subject") or []
+    return {
+        "address": document_observation["address"],
+        "role": document_observation["role"],
+        "block_uuid": document_observation["block_uuid"],
+        "phase3_outcome": document_observation["phase3_outcome"],
+        "outcome": document_observation["http"]["outcome"],
+        "http_status": document_observation["http"]["http_status"],
+        "server": document_observation["http"]["header"].get("server"),
+        "body_sha256": document_observation["http"]["body_sha256"],
+        "certificate_subject": list_subject[0].get("value") if list_subject else None,
+        "ptr": document_observation["ptr"]["name"],
+        "latency_ms_min": document_observation["latency"].get("ms_min"),
+        "neighbour": document_observation["isolation"]["neighbour"],
     }
 
 

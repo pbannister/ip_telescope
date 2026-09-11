@@ -64,6 +64,16 @@ fallen inside a block they monitor. Separating a watcher from an ordinary
 host needs the awareness test instead.
 </p>
 
+<p>
+The owner's sharper test is isolation: an address that answers while the two
+addresses immediately beside it stay silent was <em>placed</em> there, while
+anything covering a prefix answers its whole range. On 2026-09-11 the pass
+measured 598 targets, 499 responded, and <b>6 responded alone</b> — two of
+them found by the pass itself rather than by the prime pattern. None serves a
+page. The six are listed on the <a href="findings.html">findings page</a>,
+with what would separate them from ordinary single-address hosts.
+</p>
+
 <ul>
 <li><b>23.191.137.0-23.191.151.255</b> (ARIN, <i>reserved</i>) —
 <b>incidental</b>. The answering range is exactly the eight <code>/24</code>s
