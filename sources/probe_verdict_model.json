@@ -13,7 +13,17 @@
         "Group 1 is not excluded: a party watching a range would answer it exactly like this. The awareness test has not been run."
       ],
       "falsifier": "Withdrawal of the announcement with the answers persisting would break the reading; evidence of the service reacting to our probes would move it to curious; a renewed certificate and a live site would make it an ordinary service with a stale record.",
-      "record": "../records-01-probe-characterization.html"
+      "record": "../records-01-probe-characterization.html",
+      "routing": {
+        "origin_asn": "AS400050",
+        "origin_name": "Ology Newswire, Inc. (per bgp.he.net; no ARIN, PeeringDB, RADB, or RPKI record)",
+        "announced": "23.191.144.0/24 - 23.191.151.0/24, eight of the block's fifteen /24s",
+        "first_seen": "2021-10-21",
+        "visibility": "322-324 of 324 RIS peers",
+        "authorization": "no RPKI ROA (validation status unknown)",
+        "registry_object": "none: ARIN RDAP answers 404 for these addresses",
+        "dns": "ology.com, feed/list/beacon/link/api/archive.ology.com -> 23.191.144.8/.9; ns1.ology.com -> 23.191.145.2"
+      }
     },
     {
       "block_start": "103.241.72.0",
@@ -26,7 +36,17 @@
         "Nobody needs that combination to be found."
       ],
       "falsifier": "A hosting-abuse report, the provider's allocation record, or the content disappearing after a takedown would move the second claim.",
-      "record": "../records-01-probe-characterization.html"
+      "record": "../records-01-probe-characterization.html",
+      "routing": {
+        "origin_asn": "AS152194",
+        "origin_name": "CTG Server Limited (hosting)",
+        "announced": "103.241.73.0/24",
+        "first_seen": "not recorded",
+        "visibility": "not recorded",
+        "authorization": "not recorded",
+        "registry_object": "parent only (APNIC's 103.0.0.0/8)",
+        "dns": "baidu.sina.2022.5508085.com -> 103.241.73.190"
+      }
     },
     {
       "block_start": "103.149.23.0",
@@ -39,7 +59,17 @@
         "The geography test passes: 170-181 ms is consistent with the announced operator's location."
       ],
       "falsifier": "A page appearing on one of these addresses, or a refusal that moves between passes, would reopen the question.",
-      "record": "../records-01-probe-characterization.html"
+      "record": "../records-01-probe-characterization.html",
+      "routing": {
+        "origin_asn": "AS4657",
+        "origin_name": "StarHub Ltd (Singapore)",
+        "announced": "103.149.23.0/24",
+        "first_seen": "not recorded",
+        "visibility": "not recorded",
+        "authorization": "not recorded",
+        "registry_object": "parent only (APNIC's 103.0.0.0/8)",
+        "dns": "no reverse DNS"
+      }
     },
     {
       "block_start": "199.47.160.0",
@@ -52,7 +82,17 @@
         "Nothing identifies the filtering device, so the reading stays open."
       ],
       "falsifier": "A traceroute or a measurement from an independent vantage point would place the reset source; a repeat pass would show whether the reset set moves.",
-      "record": "../records-01-probe-characterization.html"
+      "record": "../records-01-probe-characterization.html",
+      "routing": {
+        "origin_asn": "AS14902",
+        "origin_name": "holder not resolved",
+        "announced": "199.47.167.0/24 (the containing /21 is not announced)",
+        "first_seen": "not recorded",
+        "visibility": "not recorded",
+        "authorization": "not recorded",
+        "registry_object": "none: RDAP holds no object at all",
+        "dns": "no reverse DNS"
+      }
     }
   ]
 }

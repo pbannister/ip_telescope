@@ -381,6 +381,26 @@ def document_catch_equal(document_http: dict, document_other: dict) -> bool:
     )
 
 
+def layers_build(dict_verdict: dict) -> str:
+    """Return the five testimonies about a site, side by side."""
+    dict_routing = dict_verdict.get("routing") or {}
+    if not dict_routing:
+        return ""
+    return (
+        "<h3>The layers, as recorded</h3><table>"
+        f"<tr><th>Delegation file</th><td>{html.escape(str(dict_verdict.get('registry_status') or 'see the block page'))}</td></tr>"
+        f"<tr><th>Registry object</th><td>{html.escape(str(dict_routing.get('registry_object') or '—'))}</td></tr>"
+        f"<tr><th>Routing</th><td>{html.escape(str(dict_routing.get('origin_asn') or '—'))} "
+        f"{html.escape(str(dict_routing.get('origin_name') or ''))}, announcing "
+        f"{html.escape(str(dict_routing.get('announced') or '—'))}, first seen "
+        f"{html.escape(str(dict_routing.get('first_seen') or '—'))}, visibility "
+        f"{html.escape(str(dict_routing.get('visibility') or '—'))}</td></tr>"
+        f"<tr><th>Authorization</th><td>{html.escape(str(dict_routing.get('authorization') or '—'))}</td></tr>"
+        f"<tr><th>DNS pointing here</th><td>{html.escape(str(dict_routing.get('dns') or '—'))}</td></tr>"
+        "</table>"
+    )
+
+
 def probe_page_build(
     text_address: str,
     document_observation: dict,
@@ -457,6 +477,23 @@ def probe_page_build(
             else ""
         )
         + "</td></tr>",
+        f"<tr><th>Certificate names</th><td>"
+        + (
+            "subject alternative names: "
+            + html.escape(
+                ", ".join(
+                    f"{item.get('type')}:{item.get('value')}"
+                    for item in (document_certificate.get("subject_alt_name") or [])
+                )
+                or "none"
+            )
+            + " — <b>no IP address in the certificate</b>; SHA-256 "
+            + html.escape(str((document_certificate.get("sha256") or "")[:32]))
+            + "…"
+            if document_certificate
+            else "no certificate was presented"
+        )
+        + "</td></tr>",
         f"<tr><th>Reverse DNS</th><td>{html.escape(str((document_observation.get('ptr') or {}).get('name') or 'none'))}</td></tr>",
         f"<tr><th>Round trips</th><td>{document_latency.get('sample_ms')} ms; "
         f"floor {document_latency.get('ms_min')} ms, median {document_latency.get('ms_median')} ms, "
@@ -492,6 +529,7 @@ def probe_page_build(
             f"<p><b>What would change it:</b> {html.escape(dict_verdict['falsifier'])}</p>"
             "</div>"
         )
+        list_html.append(layers_build(dict_verdict))
         list_html.append(
             "<p>The verdict is a property of the <em>site</em>, not of this "
             "probe: the evidence is block-scale, and no per-address verdict "

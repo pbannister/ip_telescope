@@ -62,6 +62,15 @@ what the measurements show, and what would overturn each reading.
 </tr>
 </table>
 
+<p>
+The first block, <code>23.191.137.0-23.191.151.255</code>, has since been
+investigated in depth — the domain that answers from it, the network that
+announces it, why the registry calls it reserved, and whether one host or
+many serve it: see <a href="records-03-ology-newswire.html">the ology.com and
+23.191.137.0 record</a>, and the layers side by side on
+<a href="blocks/octet-023.html">the 23/8 map page</a>.
+</p>
+
 <h2>The control sample, and a correction to our own theory</h2>
 
 <p>

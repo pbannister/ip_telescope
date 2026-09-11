@@ -157,9 +157,11 @@ def characterization_map_read(path_characterize: pathlib.Path) -> dict[str, dict
         document_characterize = json.load(file_characterize)
     return {
         item["address"]: {
-            "outcome": item["http"]["outcome"],
+            "outcome": (item.get("http") or {}).get("outcome"),
             "isolated": (item.get("isolation") or {}).get("isolated"),
             "role": item.get("role"),
+            "block_uuid": item.get("block_uuid"),
+            "certificate": (item.get("https") or {}).get("certificate"),
         }
         for item in document_characterize.get("observations", [])
     }
@@ -537,6 +539,7 @@ def block_page_build(
     list_probe: list[str],
     dict_outcome: dict[str, dict],
     dict_characterize: dict[str, dict],
+    dict_verdict: dict | None = None,
 ) -> str:
     """Return the per-block page content."""
     document_rir = document_block["rir_record"]
@@ -663,12 +666,67 @@ def block_page_build(
             + "</code></p>"
         )
 
+    list_html.append(layers_build(document_block, dict_characterize, dict_verdict))
     list_html.append(
         "<p>The registry's verbatim RDAP answer is kept in the local work "
         "product <code>dataflow.out/02_ip_block.json</code> and is not "
         "published, because it carries registrant contact details.</p>"
     )
     return "\n".join(list_html)
+
+
+def layers_build(
+    document_block: dict,
+    dict_characterize: dict[str, dict],
+    dict_verdict: dict | None,
+) -> str:
+    """Return the testimonies about this block, side by side.
+
+    The delegation file, the registry object, the routing table, the RPKI
+    state, the DNS, and the certificate are separate witnesses. Where they
+    disagree, the disagreement is the finding.
+    """
+    text_state, text_state_note = rdap_state_read(document_block)
+    dict_routing = (dict_verdict or {}).get("routing") or {}
+    dict_certificate: dict[str, dict] = {}
+    for dict_item in dict_characterize.values():
+        if dict_item.get("block_uuid") != document_block["block_uuid"]:
+            continue
+        dict_cert = dict_item.get("certificate") or {}
+        if dict_cert.get("sha256") and dict_cert["sha256"] not in dict_certificate:
+            dict_certificate[dict_cert["sha256"]] = dict_cert
+    list_certificate = []
+    for dict_cert in dict_certificate.values():
+        list_subject = dict_cert.get("subject") or [{}]
+        list_alt = dict_cert.get("subject_alt_name") or []
+        list_certificate.append(
+            f"<b>{html.escape(str(list_subject[0].get('value') or '—'))}</b>: "
+            + html.escape(
+                ", ".join(f"{item.get('type')}:{item.get('value')}" for item in list_alt)
+                or "no subject alternative names"
+            )
+            + f"; valid {html.escape(str(dict_cert.get('not_before') or '—'))} to "
+            f"{html.escape(str(dict_cert.get('not_after') or '—'))}, "
+            f"verified {dict_cert.get('verified')}, SHA-256 "
+            f"{html.escape(str((dict_cert.get('sha256') or '')[:24]))}…"
+        )
+    document_rir = document_block["rir_record"]
+    return (
+        "<h2>Who operates this: the layers, side by side</h2><table>"
+        f"<tr><th>Delegation file</th><td>{html.escape(document_rir['status'])}"
+        f"{', ' + html.escape(document_rir['country']) if document_rir['country'] else ''}"
+        f"{', ' + html.escape(document_rir['date']) if document_rir['date'] else ''}</td></tr>"
+        f"<tr><th>Registry object</th><td>{html.escape(text_state)} — {html.escape(text_state_note)}</td></tr>"
+        f"<tr><th>Routing</th><td>{html.escape(str(dict_routing.get('origin_asn') or 'not recorded'))} "
+        f"{html.escape(str(dict_routing.get('origin_name') or ''))}"
+        f"{', announcing ' + html.escape(str(dict_routing.get('announced'))) if dict_routing.get('announced') else ''}"
+        f"{', first seen ' + html.escape(str(dict_routing.get('first_seen'))) if dict_routing.get('first_seen') else ''}"
+        f"{', visibility ' + html.escape(str(dict_routing.get('visibility'))) if dict_routing.get('visibility') else ''}</td></tr>"
+        f"<tr><th>Authorization</th><td>{html.escape(str(dict_routing.get('authorization') or 'not recorded'))}</td></tr>"
+        f"<tr><th>DNS pointing here</th><td>{html.escape(str(dict_routing.get('dns') or 'not recorded'))}</td></tr>"
+        f"<tr><th>Certificate</th><td>{'<br>'.join(list_certificate) if list_certificate else 'none presented'}</td></tr>"
+        "</table>"
+    )
 
 
 def main(arguments: list[str]) -> int:
@@ -710,6 +768,17 @@ def main(arguments: list[str]) -> int:
     dict_characterize = characterization_map_read(
         arguments_parsed.data_directory / "06_ip_probe_characterize.json"
     )
+
+    document_model = {}
+    path_model = pathlib.Path(__file__).resolve().parent / "probe_verdict_model.json"
+    if path_model.is_file():
+        with open(path_model, "r", encoding="utf-8") as file_model:
+            document_model = json.load(file_model)
+    dict_verdict_of = {}
+    for dict_verdict in document_model.get("site", []):
+        for document_block in list_block:
+            if document_block["rir_record"]["start"] == dict_verdict["block_start"]:
+                dict_verdict_of[document_block["block_uuid"]] = dict_verdict
 
     dict_count, list_gap = count_build(list_block, dict_probe, dict_outcome, dict_characterize)
     page_write(
@@ -753,6 +822,7 @@ def main(arguments: list[str]) -> int:
                 dict_probe.get(document_block["block_uuid"], []),
                 dict_outcome,
                 dict_characterize,
+                dict_verdict_of.get(document_block["block_uuid"]),
             ),
             STYLE_PAGE,
         )
