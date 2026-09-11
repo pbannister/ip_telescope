@@ -194,7 +194,9 @@ care, and the project has one host, on the US west coast. The owner has a
 hosted server in Oregon, recorded as a <b>deferred</b> option and not in use:
 it shares the project host's coast, so it is weak for the geosynchronous
 band, though it could still speak to the lunar floor, where the quantum is
-three orders of magnitude larger than the geography.</li>
+three orders of magnitude larger than the geography. A cloud virtual machine
+in a distant region is the stronger deferred option, because a region is a
+known place; it is recorded, not attempted.</li>
 <li>Site <code>199.47.167.0/24</code> stays unexplained until the resets are
 attributed: a traceroute or an outside measurement would place the device.</li>
 <li>Live ranges are sampled, not mapped to the address.</li>

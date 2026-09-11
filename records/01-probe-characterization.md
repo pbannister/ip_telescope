@@ -207,6 +207,15 @@ the reset source. A repeat pass would show whether the reset set moves.
   most about 7 ms of lunar round trip, against tens of milliseconds over a
   terrestrial path, and the quantum is 2,564 ms. The strong version of the
   test still wants an observer on another continent.
+- **Second vantage point by cloud virtual machine (deferred; owner note,
+  2026-09-11).** The owner suggests standing up a virtual machine on Amazon,
+  Google, or the like in a distant region. Also not to be attempted yet. It is
+  the strongest of the deferred options, because a region is a known place:
+  the separation can be chosen for the band under test, which the Oregon host
+  cannot do. Two practical notes belong with it — a cloud egress may not reach
+  dark address space, though every address worth testing here answered and is
+  therefore routed — and a provider may read address probing as scanning, so
+  the pass must stay a handful of documented connects to named addresses.
 
 ## Addendum: the light-speed test, and a second pass — 2026-09-11
 

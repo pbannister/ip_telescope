@@ -322,14 +322,26 @@ what is there.
   currently bands a floor from 0.95 to 1.30 times the quantum, which is wide
   enough to catch ordinary long-haul paths, so the band is a filter and the
   jitter and vantage tests do the deciding.
-- Where does the second vantage point come from? A second host on another
-  continent, a RIPE Atlas measurement, or a rented probe. The project has one
-  host today, on the US west coast, and the decisive test needs an observer
-  far from it. **Owner note, 2026-09-11**: the webhost has servers in Oregon
-  and can be reached over SSH. It is recorded as a deferred option — not to
-  be used yet, and weak for the geosynchronous band because it shares the
-  project host's coast. Its plausible use is the lunar floor, where the
-  geographic penalty is small next to the quantum.
+- Where does the second vantage point come from? The project has one host
+  today, on the US west coast, and the decisive test needs an observer far
+  from it. Three candidates, all recorded as **deferred options that are not
+  to be used yet** (owner notes, 2026-09-11):
+
+  | Option | Worth | Catch |
+  | --- | --- | --- |
+  | A cloud virtual machine in a distant region (Amazon, Google, or the like) | **The strongest of the three.** The region is a known place, so the distance is known rather than guessed, and the observer can be put wherever the arithmetic asks: an intercontinental separation is what the geosynchronous band needs | Costs a few cents an hour; the provider's egress may not reach dark address space at all, though every address worth testing here answered, so it is routed by definition; a provider may treat address probing as scanning, so keep it to a handful of connects to named addresses, documented |
+  | The owner's webhost in Oregon | Free, reachable over SSH, and weak: it shares the project host's coast | Same-coast observers differ by a few milliseconds either way, which decides nothing in the geosynchronous band; it could still speak to the lunar floor |
+  | A RIPE Atlas measurement | Many vantage points, someone else's hardware, no account of one's own to run | Needs an account and credits, and the anchors' locations are the operator's, not chosen for this question |
+
+  **What the deferred test would do**, so that it is ready to run rather than
+  an idea: from the second vantage, measure one round trip to the same
+  addresses — the six isolated responders, a representative address of each
+  answering site, and any address whose floor lands in a band — as the
+  smallest of at least thirty connects, and record the vantage's region and
+  evidence for it. Then compare floors. The same floor from both places, with
+  no jitter, is the signature that no terrestrial path produces; a floor that
+  shifts with the observer, by about the difference in path length, is a
+  terrestrial answer and closes the question.
 - Should the far field get its own pass with a deliberately long wait — ten
   seconds would reach L2 — on a sample of addresses, given that the ordinary
   budget cannot see past it?

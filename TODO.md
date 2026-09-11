@@ -30,6 +30,15 @@
           most 42 ms of round trip — and two observers a thousand kilometres
           apart about 7 ms — against a 2,564 ms quantum. Do not probe from it,
           and do not treat it as the decisive second observer.
+    * [ ] **deferred; do not attempt** — a cloud virtual machine in a distant
+          region (Amazon, Google, or the like), recorded by the owner on
+          2026-09-11. This is the strongest of the deferred options: the
+          region is a known place, so the separation is known and can be
+          chosen to suit the band being tested, which the Oregon host cannot
+          do. Costs a few cents an hour; the provider's egress may not reach
+          dark space, though every address worth testing answered, so it is
+          routed; and a provider may read address probing as scanning, so it
+          must stay a handful of documented connects.
     * [ ] the strong version of that test still needs an observer on another
           continent: Europe or Asia, at a known distance.
     * [ ] run the far-field test deliberately: one pass with a long wait —
