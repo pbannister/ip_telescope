@@ -28,6 +28,7 @@ space no operator holds, each asked one HTTP question. Counts below verified
 <li>Phase 2 — <code>dataflow.out/03_ip_probe.json</code> — 7,351,236 probe-to-block pairs.</li>
 <li>Phase 2 — <code>dataflow.out/04_ip_probe.json</code> — 49,572 probes no operator holds.</li>
 <li>Phase 3 — <code>dataflow.out/05_ip_probe_http.json</code> — 49,572 observations: 99 answers, 6 refused, 1 reset, 49,466 timeouts.</li>
+<li>Phase 4 — <code>dataflow.out/06_ip_probe_characterize.json</code> — 342 targets: 106 anomalies and 236 non-prime control addresses.</li>
 </ul>
 
 <p>
@@ -38,6 +39,41 @@ loudest is <code>23.191.149.0/24</code>, inside ARIN block
 only its parent <code>23.0.0.0/8</code>, which ARIN holds itself. Six
 addresses in reserved APNIC and ARIN blocks refused the connection, and one
 of those blocks (<code>199.47.160.0/21</code>) has no RDAP object at all.
+</p>
+
+<h2>What phase 4 found</h2>
+
+<p>
+The four-prime pattern did not survive contact. Every service answered its
+non-prime control neighbours too, so the pattern was an artifact of where
+phase 3 looked, not a property of the services. The control sample turned 99
+answering addresses into 237 in one block.
+</p>
+
+<ul>
+<li><b>23.191.137.0-23.191.151.255</b> (ARIN, <i>reserved</i>) —
+<b>incidental</b>. The answering range is exactly the eight <code>/24</code>s
+announced by AS400050, and <code>ology.com</code> resolves into it: an
+ordinary web host with a stale registry record. Its certificate expired in
+May 2025.</li>
+<li><b>103.241.72.0/22</b> (APNIC, <i>reserved</i>) — two claims.
+<b>Incidental</b> for the anomaly (the <code>/24</code> is announced by a
+hosting provider while the record says reserved) and <b>nefarious</b> for the
+activity: an automatic redirect page, a throwaway domain farm in the
+certificate, and no reverse DNS.</li>
+<li><b>103.149.23.0/24</b> (APNIC, <i>reserved</i>) — <b>incidental</b>. The
+<code>/24</code> is announced by StarHub; the refusals are ordinary filtering
+on an announced range with no service.</li>
+<li><b>199.47.160.0/21</b> (ARIN, <i>reserved</i>, no RDAP object) —
+<b>unexplained</b>. Resets come from an announced <code>/24</code> inside a
+block with no registry object, and the device is not identified.</li>
+</ul>
+
+<p>
+The evidence, the verdicts, and the measurement that would overturn each one
+are in <code>records/01-probe-characterization.md</code>. The expected
+characterization was written first, in
+<code>documents/07-characterization-theory.md</code>.
 </p>
 
 <p>

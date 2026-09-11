@@ -89,6 +89,7 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 | `dataflow.out/03_ip_probe.json` | `[address, block_uuid]` for probes inside operator-held blocks | 7,351,236 | 441 MB |
 | `dataflow.out/04_ip_probe.json` | probes in blocks no operator holds: the phase 3 targets | 49,572 | 1.0 MB |
 | `dataflow.out/05_ip_probe_http.json` | one HTTP observation per phase 3 target | 49,572 | 18 MB |
+| `dataflow.out/06_ip_probe_characterize.json` | phase 4 evidence for each anomaly and its controls | 342 | 3.4 MB |
 
 - Counts verified 2026-09-10 against the RIR delegation files fetched that day.
 - Of the 9,200 probe-bearing blocks, 8,616 are operator-held (`allocated` or `assigned`) and 584 are not (`available` or `reserved`).
@@ -105,8 +106,33 @@ The work proceeds in phases; see `PHASES.md` for the current state.
 - `make blocks` fetches the RIR delegation files into `dataflow.out/raw/` and writes the phase 2 files. Add `--refresh` to fetch again: `sh scripts/02-block-collect.sh --refresh`.
 - `make enrich` adds the RIR RDAP record to every collected block, caching each answer in `dataflow.out/raw/RDAP-CACHE.jsonl`. Use `--limit N` for a trial; the lookup is rate limited by `--rate` requests per second.
 - `make observe` runs phase 3 over `dataflow.out/04_ip_probe.json`. Use `--limit` for a trial run.
+- `make characterize` runs phase 4 over the phase 3 anomalies: the probe battery, plus non-prime control addresses sampled from the same blocks. `--control-count N` sets the sample size, and `--limit N` bounds a trial.
 - `make test` runs every test; the phase tests are portable and need no network.
 - `make site` builds the project pages.
+
+## Characterizing an Anomaly
+
+An answer from space no operator holds has four admitted explanations:
+**curious** (other folk running the inverse exercise), **incidental** (an
+accident of configuration), **nefarious** (local folk who need to hide), and
+**other** (not local folk).
+
+The expected characterization is written down before the evidence is read:
+
+- `documents/07-characterization-theory.md` — the four explanations, the
+  discriminating tests, and the traps.
+- `prompts/features/06-probe-characterization.md` — the capability and its
+  requirements.
+
+The observed characterization is a dated record per site, with the evidence,
+the verdict, the confidence, and the measurement that would overturn it.
+An address that no evidence explains is recorded as **unexplained**, which is
+a result and not a failure.
+
+The sharpest test is the control: an incumbent service answers on every
+address in its range, while a deliberate exercise would answer only on the
+four-prime addresses. So phase 4 probes non-prime neighbours as well, and
+reports both.
 
 ## Work Products Are Kept
 
@@ -119,6 +145,7 @@ costs real time to build. Nothing is rebuilt silently:
 | `02_ip_block.json`, `03_ip_probe.json`, `04_ip_probe.json` | 16 seconds, plus the RIR downloads |
 | the RDAP records inside `02_ip_block.json` | about 40 minutes of registry queries |
 | `05_ip_probe_http.json` | 19 minutes of live Internet probing, not repeatable on demand |
+| `06_ip_probe_characterize.json` | a few minutes of live probing per pass, and the sites may change between passes |
 
 Two mechanisms enforce the rule, and both must agree:
 

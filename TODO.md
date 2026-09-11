@@ -6,15 +6,27 @@
       phase 3 pass of 2026-09-10 offers candidates: an answer where the
       registry says `reserved`, a refused connection where no host exists,
       and an answer that arrives faster than a distant server could give it.
-* [ ] investigate the 2026-09-10 answers, in order:
-    * [ ] `23.191.149.0/24`: 98 of the 216 probes in ARIN block
-          `23.191.137.0-23.191.151.255` (`reserved`) answered with an nginx
-          `301` to HTTPS; the rest of the block stayed silent.
-    * [ ] `103.241.73.191`: an nginx `200` serving a Chinese hosting-panel
-          page from APNIC block `103.241.72.0/22` (`reserved`).
-    * [ ] `103.149.23.0/24` and `199.47.160.0/21` (`reserved`, APNIC and
-          ARIN): six addresses refused the connection and one reset it,
-          which means something is listening or filtering there.
+* [ ] phase 4 (done 2026-09-11, see `records/01-probe-characterization.md`)
+      left these follow-ups:
+    * [ ] place the reset source at Site D (`199.47.167.0/24`): a traceroute,
+          or the same probe from an outside vantage point such as a RIPE
+          Atlas measurement.
+    * [ ] repeat the phase 4 pass later: stability is one of the
+          discriminators, and a single pass cannot test it.
+    * [ ] map the live ranges of Sites A and B exactly, rather than by
+          sample, so the answering boundary is known to the address.
+    * [ ] decide whether a routing-layer lookup (who announces the prefix)
+          belongs in the phase 4 battery or becomes its own collection step.
+    * [ ] decide whether Site B warrants a hosting-abuse report to the
+          announcing operator, and whether the project does that at all.
+* [ ] revise the characterization criteria as the phase 4 evidence arrives:
+      what counts as self-explanation, whether a verdict needs a second
+      observation, how to read a service that answers on only some of the
+      four-prime addresses, and what confidence scale to use.
+* [ ] phase 5 (deferred) — hunt rogue `ip_probe` inside operator-held blocks:
+      an address that answers although the registry's own object does not
+      cover it, most likely hidden in a large block. Rank candidates by block
+      size and by the gap between the registry object and the answers.
 * [ ] decide whether phase 3 should be repeated on a schedule so that
       answers can be compared over time, and whether a repeat uses the same
       parameters (port 80, thread 128, timeout 3).

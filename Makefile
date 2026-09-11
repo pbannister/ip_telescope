@@ -16,6 +16,11 @@
 #		         (phase 3: HTTP GET every probe that no operator holds,
 #		         then write dataflow.out/05_ip_probe_http.json; pass --limit for a
 #		         trial run)
+#		characterize: sh scripts/05-probe-characterize.sh
+#		         (phase 4: gather the evidence that characterizes the
+#		         addresses that answered, with non-prime control addresses
+#		         in the same blocks, then write
+#		         dataflow.out/06_ip_probe_characterize.json)
 #		build:  sh scripts/site-build.sh
 #		site:   sh scripts/site-build.sh + sh scripts/site-condense.sh
 #		        (the standard page set; see prompts/features/02-project-pages.md)
@@ -40,12 +45,12 @@
 #	program reuses the file whenever every block already carries its RDAP
 #	record. Use --retry-failed to fill the blocks that were left unanswered.
 #
-#	Phase 4 and later add work products 06, 07, 08; they are not defined yet
+#	Phase 5 and later add work products 07, 08; they are not defined yet
 #	(see TODO.md).
 #
 
 # default target: build everything, including the site.
-all: probes blocks enrich observe build site
+all: probes blocks enrich observe characterize build site
 
 # Work products, in phase order.
 FILE_01_PROBES=dataflow.out/01_ip_probe.json
@@ -53,6 +58,7 @@ FILE_02_BLOCKS=dataflow.out/02_ip_block.json
 FILE_03_PROBES_MAPPED=dataflow.out/03_ip_probe.json
 FILE_04_PROBES_OPEN=dataflow.out/04_ip_probe.json
 FILE_05_PROBES_HTTP=dataflow.out/05_ip_probe_http.json
+FILE_06_PROBES_CHARACTERIZED=dataflow.out/06_ip_probe_characterize.json
 
 $(FILE_01_PROBES):
 	sh scripts/01-probe-generate.sh
@@ -65,11 +71,15 @@ $(FILE_02_BLOCKS) $(FILE_03_PROBES_MAPPED) $(FILE_04_PROBES_OPEN): $(FILE_01_PRO
 $(FILE_05_PROBES_HTTP): $(FILE_04_PROBES_OPEN)
 	sh scripts/03-probe-observe.sh
 
+$(FILE_06_PROBES_CHARACTERIZED): $(FILE_05_PROBES_HTTP)
+	sh scripts/05-probe-characterize.sh
+
 probes: $(FILE_01_PROBES)
 blocks: $(FILE_02_BLOCKS) $(FILE_03_PROBES_MAPPED) $(FILE_04_PROBES_OPEN)
 enrich:
 	sh scripts/04-block-enrich.sh
 observe: $(FILE_05_PROBES_HTTP)
+characterize: $(FILE_06_PROBES_CHARACTERIZED)
 
 build:
 	sh scripts/site-build.sh
@@ -97,4 +107,4 @@ deploy:
 install:
 	@echo '==== No install yet defined'
 
-.PHONY: all probes blocks enrich observe build site clean test deploy install
+.PHONY: all probes blocks enrich observe characterize build site clean test deploy install

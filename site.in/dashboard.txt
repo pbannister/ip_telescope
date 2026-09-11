@@ -12,12 +12,20 @@ dashboard from the data files is still on the <code>TODO.md</code> list.
 <tr><td><code>dataflow.out/03_ip_probe.json</code></td><td>probe-to-block pairs (operator-held)</td><td>7,351,236</td></tr>
 <tr><td><code>dataflow.out/04_ip_probe.json</code></td><td>probes no operator holds</td><td>49,572</td></tr>
 <tr><td><code>dataflow.out/05_ip_probe_http.json</code></td><td>HTTP observations</td><td>49,572</td></tr>
+<tr><td><code>dataflow.out/06_ip_probe_characterize.json</code></td><td>phase 4 evidence (106 anomalies, 236 controls)</td><td>342</td></tr>
 </table>
 
 <p>
 Phase 3 outcome, 2026-09-10: <code>http_response</code> 99,
 <code>connect_refused</code> 6, <code>connection_reset</code> 1,
 <code>timeout</code> 49,466.
+</p>
+
+<p>
+Phase 4 outcome, 2026-09-11: 241 of 342 targets answered, every answer a
+catch-all; the controls answered as readily as the four-prime addresses.
+Verdicts: incidental (Sites A and C), incidental plus nefarious (Site B),
+unexplained (Site D).
 </p>
 
 <p>RIR delegation files fetched 2026-09-10; digests in <code>dataflow.out/raw/SHA256SUMS</code>.</p>
