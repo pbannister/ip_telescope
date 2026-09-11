@@ -210,8 +210,9 @@ a TCP connect, one round trip, in 2.6 seconds.
 
 Phase 4 measures connects, and its 5-second budget puts the lunar floor
 inside the window. Anything past that budget — Sun–Earth L2 at 10 seconds,
-Mars at minutes — stays invisible, and the result file now states that budget
-next to the two floors, so the blind spot is visible rather than implied.
+which is the outer bound the project means to look at — stays invisible, and
+the result file now states that budget next to the two floors, so the blind
+spot is visible rather than implied.
 
 ### Result
 

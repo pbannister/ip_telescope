@@ -97,8 +97,8 @@ anywhere near either. The smallest connect to the ARIN site was 8 ms, which
 rules out both distances outright, and the refusals at 170–181 ms agree with
 an operator on the ground. The five-second budget put the lunar floor inside
 the window, so the 89 targets that stayed silent are evidence against the
-Moon too. What remains unseen is everything slower than five seconds: Sun–Earth
-L2 at ten seconds, and Mars at minutes.
+Moon too. What remains unseen is Sun–Earth L2 at ten seconds — the outer
+bound the project means to look at — and anything slower.
 </p>
 
 <p>
