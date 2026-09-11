@@ -724,7 +724,27 @@ def layers_build(
         f"{', visibility ' + html.escape(str(dict_routing.get('visibility'))) if dict_routing.get('visibility') else ''}</td></tr>"
         f"<tr><th>Authorization</th><td>{html.escape(str(dict_routing.get('authorization') or 'not recorded'))}</td></tr>"
         f"<tr><th>DNS pointing here</th><td>{html.escape(str(dict_routing.get('dns') or 'not recorded'))}</td></tr>"
-        f"<tr><th>Certificate</th><td>{'<br>'.join(list_certificate) if list_certificate else 'none presented'}</td></tr>"
+        + (
+            f"<tr><th>Registrant</th><td>{html.escape(str(dict_routing.get('registrant')))}</td></tr>"
+            if dict_routing.get("registrant")
+            else ""
+        )
+        + (
+            f"<tr><th>Operators named</th><td>{html.escape(str(dict_routing.get('operators_named')))}</td></tr>"
+            if dict_routing.get("operators_named")
+            else ""
+        )
+        + (
+            f"<tr><th>Application</th><td>{html.escape(str(dict_routing.get('application')))}</td></tr>"
+            if dict_routing.get("application")
+            else ""
+        )
+        + (
+            f"<tr><th>Publication</th><td>{html.escape(str(dict_routing.get('publication')))}</td></tr>"
+            if dict_routing.get("publication")
+            else ""
+        )
+        + f"<tr><th>Certificate</th><td>{'<br>'.join(list_certificate) if list_certificate else 'none presented'}</td></tr>"
         "</table>"
     )
 

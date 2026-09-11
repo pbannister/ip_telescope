@@ -119,6 +119,97 @@ it does not recognise the name it was addressed by.
 - What the application does. It needs JavaScript; the project reads headers
   and certificates, not scripts.
 
+## Addendum: the follow-up investigation — 2026-09-11
+
+### The registrant, and what each route costs
+
+The public record stops at a privacy service: the registrar's own whois shows
+**Registrant Organization: Domains By Proxy, LLC**, Registrant Name
+"Registration Private", 100 S. Mill Ave, Suite 1600 — GoDaddy's proxy. The
+registration is locked, prepaid to 2029-03-07, and the registrant is not
+published.
+
+| Route | Cost | What it yields |
+| --- | --- | --- |
+| Registrar whois / RDAP | free | Registrar, dates, statuses, and the proxy — everything the record shows today |
+| The site's own archived legal pages | free | **The operators, named in their own documents** (see below). This worked |
+| ICANN Registration Data Request Service (RDRS) | free | A request to GoDaddy for the non-public registrant data; the requester must attest to a legitimate purpose (intellectual property, fraud, security). Curiosity about an anomalous address is not one |
+| Paid historical whois (DomainTools, WhoisXMLAPI, SecurityTrails, Whoisology and similar) | roughly ten to a few tens of dollars for a report; subscription tiers run toward a hundred dollars a month | Registrant records from before the privacy era, if the domain was not private then. The pre-2018 record is exactly where a name would sit |
+| State corporate registry (Secretary of State) | free to a few dollars per search | Officers and registered agents of the LLC or corporation, if the entity is registered in that state |
+| Subpoena or UDRP | hundreds to thousands | The registrar's records, under legal process |
+
+Prices move; they should be checked before spending anything. The free route
+was the productive one.
+
+### The operators, named by their own documents
+
+| When | Who | Where it says so |
+| --- | --- | --- |
+| 2012 | **Ology Media, Inc.** | The archived terms page: "DMCA Complaints Ology Media, Inc." |
+| 2012-2018 | **NewPress, LLC** | The archived privacy, terms, and DMCA pages: "the policies and procedures of NewPress, LLC", "Infringement for Company at NewPress, LLC" |
+| 2021-2026 | **Ology Newswire, Inc.** | The ASN name, the application title, and the Substack |
+
+Three named operators behind one domain across twenty-four years. The
+registrant of record today is still hidden, but the *operators* are public
+because they published their own legal notices.
+
+### What the application is, and why it looks dead
+
+- The site is a **Vue single-page application** (`chunk-vendors`, `app.js`,
+  Bootstrap and core-js inside). Its only data sources are three feed URLs,
+  `https://feed.ology.com/feed/<topic>/latest.jsonl` for politics feeds, and a
+  link to `ology.substack.com`. **No websockets, no analytics identifiers, no
+  other endpoints: nothing is hidden in the client.**
+- **The feed times out.** A request to `feed.ology.com/feed/politics-mainstream/latest.jsonl`
+  returns nothing after 35 seconds, so the application waits for data that
+  never arrives. That is the whole of "the site does not work".
+- The named services are configured and unhappy: `feed`, `list`, `link`, and
+  `api` answer `400` at the root, `beacon` answers `403`, `archive` answers
+  `500`. Names of that shape — feed, list, beacon, link — are a publishing
+  stack: content feeds, a mailing list, open tracking, and click tracking.
+- The publication moved to Substack: **Public Square Networks, by Ology
+  Newswire**, launched five years ago, with **two posts, June and July 2021,
+  and nothing since**.
+
+### The timeline the evidence supports
+
+**2021**: the venture starts — Substack posts in June and July, the ASN's
+first announcement in October. **2021-2025**: the stack runs, on rented hosts
+in more than one place, with per-name certificates. **May-June 2025**: those
+certificates lapse and are not replaced on these hosts. **2026**: still
+reachable, still paid for (the registration runs to 2029), still broken.
+
+### The port-knock hypothesis, tested as far as it can be
+
+The idea: meaningful behaviour might require hitting several addresses in a
+particular order with particular keys. What the evidence says:
+
+- **The key in this stack is the name, not a sequence.** Addressed by IP, every
+  address gives the same `301` and the same expired certificate; addressed by
+  name, the services answer differently (`400`, `403`, `500`) and present their
+  own certificates. Whatever is selective here is selected by `Host`/SNI.
+- **No state changed under our probing.** Three passes over the same addresses
+  (two 21 minutes apart, one later) gave byte-identical answers; nothing
+  changed after other addresses had been touched. A knock sequence that latches
+  a door would have to be a sequence we did not guess — but it would also have
+  to leave no trace in any of those passes.
+- **What could still be tested**: ordered probes with distinctive markers,
+  comparing a given address's answer before and after a chosen sequence;
+  longer observation over days, to catch a schedule; endpoint enumeration on
+  the named services (public paths only). What cannot be tested is the space of
+  sequences and keys, which is unbounded — so a negative result would be weak
+  evidence and a positive one would be accidental.
+
+**Assessment**: nothing in the client, the services, or the certificates is
+shaped like a covert channel, and the mundane reading now has a name, a
+timeline, and a business. The genuinely unexplained part has narrowed to
+paperwork: an ASN and a block of address space in daily use since 2021 that no
+registry admits to knowing about.
+
 ## Commits
 
-- `pending` docs: record what ology.com and 23.191.137.0 are
+- `pending` docs: follow the registrant and the application
+
+## Commits
+
+- `4fe3070` docs: investigate ology.com and the block that serves it

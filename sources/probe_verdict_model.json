@@ -22,7 +22,11 @@
         "visibility": "322-324 of 324 RIS peers",
         "authorization": "no RPKI ROA (validation status unknown)",
         "registry_object": "none: ARIN RDAP answers 404 for these addresses",
-        "dns": "ology.com, feed/list/beacon/link/api/archive.ology.com -> 23.191.144.8/.9; ns1.ology.com -> 23.191.145.2"
+        "dns": "ology.com, feed/list/beacon/link/api/archive.ology.com -> 23.191.144.8/.9; ns1.ology.com -> 23.191.145.2",
+        "registrant": "hidden behind Domains By Proxy, LLC (GoDaddy's privacy service); registry expiry 2029-03-07",
+        "operators_named": "Ology Media, Inc. (2012 legal pages), NewPress, LLC (2012-2018 DMCA and privacy pages), Ology Newswire, Inc. (the ASN name today)",
+        "publication": "ology.substack.com, Public Square Networks: two posts, June and July 2021, dormant since",
+        "application": "Vue single-page app whose only data source is https://feed.ology.com/feed/<topic>/latest.jsonl; the feed times out, and the named services answer 400 (feed, list, link, api), 403 (beacon), 500 (archive)"
       }
     },
     {
