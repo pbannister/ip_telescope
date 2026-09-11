@@ -81,9 +81,10 @@ The light-speed test found nothing either. A round trip to geosynchronous
 orbit takes 239 ms at best and to the Moon 2,564 ms; no address measured
 anywhere near either. The smallest connect to the ARIN site was 8 ms, which
 rules out both distances outright, and the refusals at 170–181 ms agree with
-an operator on the ground. In the other direction the pass is silent: 89 of
-the 342 targets never answered within the five-second budget, and a timeout
-cannot be told apart from a responder further away than that.
+an operator on the ground. The five-second budget put the lunar floor inside
+the window, so the 89 targets that stayed silent are evidence against the
+Moon too. What remains unseen is everything slower than five seconds: Sun–Earth
+L2 at ten seconds, and Mars at minutes.
 </p>
 
 <p>

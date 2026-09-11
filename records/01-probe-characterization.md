@@ -206,9 +206,18 @@ hundred. The refusals at 170–181 ms in `103.149.23.0/24` rule that site out of
 geosynchronous orbit too, which agrees with the announcement: StarHub,
 Singapore, on the ground.
 
-So the fourth explanation has no evidence behind it, in either direction: for
-every address that answered, the measurement rules it out, and for the 89
-addresses that did not answer, the pass says nothing at all.
+So the fourth explanation has no evidence behind it: for every address that
+answered, the measurement rules it out, and for the addresses that stayed
+silent, the budget already covered the Moon.
+
+**Corrected 2026-09-11, same pass.** The first wording here said the pass
+"said nothing at all" about the 89 targets clipped at the budget. That is
+wrong, and the arithmetic says why: the lunar round trip is 2,564 ms and the
+budget is 5,000 ms, so a responder at lunar distance *would have answered in
+time*. The 89 targets did not, which excludes the Moon for them as well as
+for the addresses that answered. What stays outside the window is Sun–Earth
+L2 at 10 seconds, Mars at minutes, and anything slower still: those remain
+invisible, and a test of them needs a deliberately long wait.
 
 One trap worth recording. Thirty-one of the 99 phase 3 answers fell within a
 quarter of the geosynchronous quantum, and every one of them was an ordinary

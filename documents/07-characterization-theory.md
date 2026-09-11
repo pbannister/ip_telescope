@@ -153,6 +153,12 @@ what a blackhole records. Every pass must state its budget so the blind spot
 is visible, and a test of the far field needs a deliberately long wait rather
 than a shorter one.
 
+**Choose the budget so the quantum of interest falls inside it.** The budget
+decides which distances are testable rather than merely unobserved. A
+five-second connect budget puts the lunar floor inside the window, so a
+silent address is then evidence against the Moon, where a three-second budget
+covering only whole requests would have left it ambiguous.
+
 **The confounders.** Anycast and CDN place many servers that can look
 location-independent; satellite internet puts ordinary users behind a
 geosynchronous hop; and a long path through a congested transit network can
