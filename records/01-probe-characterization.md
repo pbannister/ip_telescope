@@ -174,4 +174,4 @@ the reset source. A repeat pass would show whether the reset set moves.
 
 ## Commits
 
-- `<pending>` feat: characterize the phase 3 anomalies with controls
+- `4ae326b` feat: characterize the phase 3 anomalies with control probes
