@@ -76,6 +76,20 @@ BITS_OCTET = 8
 VALUE_OCTET_MAX = 255
 COUNT_OCTET = 4
 
+# Light-speed floors, for the "not local folk" hypothesis. A round trip
+# cannot be faster than 2d/c, so a measured floor below the quantum rules a
+# distance out. A floor that sits on the quantum is a candidate, and only a
+# second vantage point can confirm it: a terrestrial server answers more
+# slowly to a distant observer, while a lunar one does not care.
+KM_PER_SECOND_LIGHT = 299792.458
+KM_ALTITUDE_GEOSYNCHRONOUS = 35786.0
+KM_DISTANCE_MOON_MEAN = 384400.0
+VALUE_QUANTUM_LOW = 0.95
+VALUE_QUANTUM_HIGH = 1.30
+TEXT_QUANTUM_NONE = "none"
+TEXT_QUANTUM_GEOSYNCHRONOUS = "geosynchronous_band"
+TEXT_QUANTUM_MOON = "moon_band"
+
 
 def observation_anomaly_read(path_observation: pathlib.Path) -> dict[str, dict]:
     """Return the phase 3 observations that are anomalies, keyed by address."""
@@ -356,12 +370,31 @@ def ptr_read(text_address: str, seconds_timeout: float) -> dict:
 def latency_read(
     text_address: str, value_port: int, value_timeout: float
 ) -> dict:
-    """Return TCP connect samples in milliseconds.
+    """Return TCP connect samples in milliseconds, and their light-speed band.
 
     A refused connection is a round trip too, and is recorded as one: the
     measurement is the network, not the service.
+
+    The measurement is one round trip, not a request. A full HTTP exchange
+    costs two round trips, so a responder at lunar distance would take about
+    5.1 seconds to answer a GET and only 2.6 seconds to complete a connect.
+    Reaching past the timeout is indistinguishable from a blackhole, which is
+    why the timeout is recorded as the blind spot it is.
     """
-    document_latency = {"sample_ms": [], "ms_min": None, "ms_median": None, "connected": False}
+    document_latency = {
+        "sample_ms": [],
+        "ms_min": None,
+        "ms_median": None,
+        "ms_jitter": None,
+        "connected": False,
+        "quantum": TEXT_QUANTUM_NONE,
+        "ms_floor_geosynchronous": round(
+            2000.0 * KM_ALTITUDE_GEOSYNCHRONOUS / KM_PER_SECOND_LIGHT, 1
+        ),
+        "ms_floor_moon": round(
+            2000.0 * KM_DISTANCE_MOON_MEAN / KM_PER_SECOND_LIGHT, 1
+        ),
+    }
     for _ in range(COUNT_LATENCY_SAMPLE):
         moment_start = time.monotonic()
         try:
@@ -374,7 +407,26 @@ def latency_read(
     if list_sample:
         document_latency["ms_min"] = list_sample[0]
         document_latency["ms_median"] = list_sample[len(list_sample) // 2]
+        document_latency["ms_jitter"] = list_sample[-1] - list_sample[0]
+        document_latency["quantum"] = latency_quantum_read(list_sample[0])
     return document_latency
+
+
+def latency_quantum_read(value_min_ms: int) -> str:
+    """Name the light-speed band a measured floor falls in, if any.
+
+    The minimum of several samples estimates the propagation floor, because
+    jitter only ever adds. A band hit is a candidate for the distance, not
+    evidence of it: ordinary long-haul terrestrial paths also sit in the
+    geosynchronous band.
+    """
+    for text_name, value_floor in (
+        (TEXT_QUANTUM_GEOSYNCHRONOUS, 2000.0 * KM_ALTITUDE_GEOSYNCHRONOUS / KM_PER_SECOND_LIGHT),
+        (TEXT_QUANTUM_MOON, 2000.0 * KM_DISTANCE_MOON_MEAN / KM_PER_SECOND_LIGHT),
+    ):
+        if value_floor * VALUE_QUANTUM_LOW <= value_min_ms <= value_floor * VALUE_QUANTUM_HIGH:
+            return text_name
+    return TEXT_QUANTUM_NONE
 
 
 def address_probe(text_address: str, options: "CharacterizeOptions") -> dict:
@@ -429,6 +481,9 @@ def signal_build(document_observation: dict) -> dict:
             document_certificate, document_observation["address"]
         ),
         "ptr_present": None is not document_observation["ptr"]["name"],
+        "latency_quantum": document_observation["latency"].get("quantum"),
+        "latency_ms_min": document_observation["latency"].get("ms_min"),
+        "latency_ms_jitter": document_observation["latency"].get("ms_jitter"),
     }
 
 
@@ -567,6 +622,13 @@ def characterize(options: "CharacterizeOptions") -> dict:
             "target_count": len(list_target),
             "limit": options.count_limit,
             "host_unrelated": TEXT_HOST_UNRELATED,
+            "ms_floor_geosynchronous": round(
+                2000.0 * KM_ALTITUDE_GEOSYNCHRONOUS / KM_PER_SECOND_LIGHT, 1
+            ),
+            "ms_floor_moon": round(
+                2000.0 * KM_DISTANCE_MOON_MEAN / KM_PER_SECOND_LIGHT, 1
+            ),
+            "blind_spot_seconds": options.seconds_timeout,
         },
         "blocks": list_block_document,
         "observations": list_written,

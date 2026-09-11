@@ -42,9 +42,21 @@ where a later pass can check it.
       subject, issuer, subject alternative names, validity, fingerprint, and
       whether verification succeeded;
     * the reverse DNS name, or its absence;
-    * several TCP connect latency samples;
+    * several TCP connect latency samples, taken as single round trips;
     * the block context: registry, status, size, and the RDAP handle, name,
       and organization.
+* The latency samples must measure one round trip, not a whole request: a
+  full HTTP exchange costs two round trips, and a responder at lunar distance
+  would need about 5.1 seconds for a request against 2.6 seconds for a
+  connect.
+* The pass must record the light-speed floor for geosynchronous orbit and for
+  the Moon, and name the band a measured floor falls in, if any.
+* The pass must record its timeout budget as a blind spot: an address that
+  does not answer within the budget is recorded as a timeout, which cannot be
+  distinguished from a responder beyond that distance.
+* The jitter of the latency samples must be recorded, because a floor pinned
+  to a quantum is only a candidate until the jitter is small and a second
+  vantage point sees the same floor.
 * Headers, certificate fields, and the response body digest and prefix must
   be recorded verbatim, so that a later pass can compare without repeating
   the work.
@@ -78,7 +90,13 @@ where a later pass can check it.
 * Each observation records the address, whether it is an `ip_probe`, the
   block it sits in, the phase 3 outcome, the probe results, and the derived
   signals (`catch_all`, `certificate_self_signed`, `certificate_covers_ip`,
-  `ptr_present`, and the latency samples).
+  `ptr_present`, `latency_quantum`, and the latency samples).
+* `parameters` carries `ms_floor_geosynchronous`, `ms_floor_moon`, and
+  `blind_spot_seconds`, so the result states the distances it could and could
+  not see.
+* Each observation's `latency` records `sample_ms`, `ms_min`, `ms_median`,
+  `ms_jitter`, and `quantum`, where `quantum` is `none`,
+  `geosynchronous_band`, or `moon_band`.
 * A run that finds an existing result file reports the reuse and probes
   nothing; `--refresh` probes again.
 

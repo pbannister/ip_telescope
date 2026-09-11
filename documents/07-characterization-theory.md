@@ -94,8 +94,70 @@ The tests are ordered by how much they discriminate per unit of effort.
 - **The geography test.** Compare latency with the claimed location. A
   service claiming one continent while answering in three milliseconds is
   not where it says it is.
+- **The light-speed test.** Compare the smallest round trip with the floor for
+  each plausible distance, then repeat it from a second vantage point far
+  away. A floor on a quantum, with almost no jitter, that does not move when
+  the observer does, is the only measurement that supports the fourth
+  explanation. See the section above for the arithmetic and for what a
+  timeout does and does not prove.
 - **The impossibility test.** Reserved for group 4, and the only test that
   can support it: a measurement no Earth-bound explanation reproduces.
+
+## Light-Speed Signatures
+
+The fourth explanation has one class of evidence the others cannot produce:
+a measurement that no Earth-bound arrangement reproduces. Distance is the
+cheapest such measurement, because light takes time and nothing beats it.
+
+| Where the responder is | Distance | One round trip at the speed of light |
+| --- | --- | --- |
+| Low Earth orbit | 400–2,000 km | 3–13 ms |
+| Geosynchronous orbit | 35,786 km | **239 ms** |
+| The Moon | 384,400 km | **2,564 ms** |
+| Sun–Earth L2 | 1.5 million km | 10.0 s |
+| Mars, closest approach | 55 million km | 6.1 minutes |
+
+**Measure one round trip, not one request.** A TCP connect completes in one
+round trip; a full HTTP exchange costs two. A responder at lunar distance
+would finish a connect in 2.6 seconds and a GET in 5.1 seconds, so a pass
+that times whole requests with a three-second budget cannot see the Moon even
+when it is talking to it. The connect measurement is the one that counts.
+
+**Take the minimum of several samples.** Jitter only ever adds, so the
+smallest of many round trips is the best available estimate of the
+propagation floor. Three samples is a start; a candidate deserves more.
+
+**A floor below the quantum rules the distance out.** This is the rigorous
+half of the test, and it is free. If the best round trip to a responder is
+80 ms, it is not on the Moon, and no amount of strangeness in the page
+changes that.
+
+**A floor on the quantum is a candidate, not a signature.** Ordinary
+long-haul terrestrial paths sit in the geosynchronous band, so the band alone
+decides nothing. Three further conditions must hold together:
+
+- **A floor pinned to a quantum**, not merely inside a broad band, and
+  consistent across passes.
+- **Almost no jitter.** A vacuum path has no queueing on the space segment.
+  A terrestrial long-haul path is never that steady.
+- **Independence from the observer's position.** This is the decisive test.
+  A terrestrial server answers a nearby observer faster than a distant one.
+  A lunar responder does not care: moving an observer across the Earth
+  changes a lunar round trip by at most 1.6 percent, about 41 ms, while the
+  same move changes a terrestrial round trip by tens of milliseconds. Two
+  widely separated vantage points seeing the same floor is the signature.
+
+**A timeout is not evidence of absence.** Anything beyond the budget — L2 at
+ten seconds, Mars at minutes — is recorded as a timeout, which is exactly
+what a blackhole records. Every pass must state its budget so the blind spot
+is visible, and a test of the far field needs a deliberately long wait rather
+than a shorter one.
+
+**The confounders.** Anycast and CDN place many servers that can look
+location-independent; satellite internet puts ordinary users behind a
+geosynchronous hop; and a long path through a congested transit network can
+imitate both jitter and distance. Any of those is more likely than the fourth
+explanation, and each is testable.
 
 ## The Traps
 
@@ -107,6 +169,10 @@ The tests are ordered by how much they discriminate per unit of effort.
   and the project's own owner is a candidate author.
 - **Absence of evidence.** An unexplained answer is not evidence for group 4.
   It is an unexplained answer.
+- **A latency band is not a signature.** Thirty-one of the phase 3 answers
+  sat within a quarter of the geosynchronous quantum, and every one of them
+  was ordinary long-haul terrestrial routing. The band is a filter for
+  candidates, not a finding.
 - **Registry lag.** `reserved` in a delegation file is a claim with a date,
   not a fact. RDAP and the routing table are separate testimonies, and they
   disagree more often than the word "registry" suggests.
@@ -122,8 +188,10 @@ The tests are ordered by how much they discriminate per unit of effort.
    explains itself. That points to group 1.
 4. Test concealment: do the layers disagree, does the behaviour change between
    passes, is the answer a refusal rather than a page? That points to group 3.
-5. Test impossibility, and only then: is there a measurement that no
-   Earth-bound explanation reproduces? That points to group 4.
+5. Test impossibility, and only then: a floor pinned to a light-speed
+   quantum, with almost no jitter, that does not move when the observer
+   moves. That is the only measurement that points to group 4. A floor
+   merely inside the geosynchronous band points at a long terrestrial path.
 6. Otherwise record **unexplained**, and name the measurement that is missing.
 
 ## How It Is Recorded
@@ -147,5 +215,15 @@ The tests are ordered by how much they discriminate per unit of effort.
   Partial answers suggest filtering, which is itself a signal.
 - What confidence scale? Proposal: high, medium, low, and
   single-observation, which is where every first pass starts.
+- What tolerance counts as a floor "pinned" to a quantum? The battery
+  currently bands a floor from 0.95 to 1.30 times the quantum, which is wide
+  enough to catch ordinary long-haul paths, so the band is a filter and the
+  jitter and vantage tests do the deciding.
+- Where does the second vantage point come from? A second host on another
+  continent, a RIPE Atlas measurement, or a rented probe. The project has one
+  host today, and the decisive test needs two.
+- Should the far field get its own pass with a deliberately long wait — ten
+  seconds would reach L2 — on a sample of addresses, given that the ordinary
+  budget cannot see past it?
 - Should the deferred phase 5 rank candidates by block size, by the gap
   between the registry object and the answers, or by both.

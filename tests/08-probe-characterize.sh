@@ -236,6 +236,24 @@ then
     fail "characterization output is wrong"
 fi
 
+# The light-speed band classifier: a floor below a quantum rules the
+# distance out, and a floor on it is a candidate.
+python3 - "$REPOSITORY_ROOT" <<'PYTHON_CHECK' || fail "the light-speed band classifier is wrong"
+import sys
+
+sys.path.insert(0, sys.argv[1] + "/sources")
+from ip_probe_characterize import latency_quantum_read
+
+assert "none" == latency_quantum_read(9)
+assert "none" == latency_quantum_read(180)
+assert "geosynchronous_band" == latency_quantum_read(239)
+assert "geosynchronous_band" == latency_quantum_read(300)
+assert "none" == latency_quantum_read(1500)
+assert "moon_band" == latency_quantum_read(2565)
+assert "moon_band" == latency_quantum_read(2800)
+assert "none" == latency_quantum_read(5005)
+PYTHON_CHECK
+
 # The work product is kept, and only --refresh writes it again.
 STAMP_FIRST=$(stat -c '%y' "$DIRECTORY_DATA/06_ip_probe_characterize.json")
 DIGEST_FIRST=$(sha256sum "$DIRECTORY_DATA/06_ip_probe_characterize.json" | cut -d' ' -f1)

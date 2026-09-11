@@ -172,6 +172,59 @@ the reset source. A repeat pass would show whether the reset set moves.
 - Decide whether reviewing the routing layer belongs in phase 4 or becomes a
   separate collection step.
 
+## Addendum: the light-speed test, and a second pass — 2026-09-11
+
+### The correction the light-speed test forced
+
+Phase 3 timed whole HTTP requests, and a request costs two round trips. A
+responder at lunar distance would need about 5.1 seconds to answer a `GET` —
+outside the 3-second phase 3 budget, and therefore recorded as a timeout,
+which is exactly what a blackhole records. The same responder would complete
+a TCP connect, one round trip, in 2.6 seconds.
+
+Phase 4 measures connects, and its 5-second budget puts the lunar floor
+inside the window. Anything past that budget — Sun–Earth L2 at 10 seconds,
+Mars at minutes — stays invisible, and the result file now states that budget
+next to the two floors, so the blind spot is visible rather than implied.
+
+### Result
+
+Pass 2 ran 2026-09-11T09:04:39Z and recorded the bands. Of 342 targets, 245
+connected and 89 were clipped at the budget. **No address had a floor on
+either quantum**: every one classified as `none`.
+
+| Site | Smallest connect | Median |
+| --- | --- | --- |
+| `23.191.137.0` (ARIN) | 8 ms | 65 ms |
+| `103.241.72.0` (APNIC) | 170 ms | 171 ms |
+
+Jitter ran from 1 ms to 1004 ms, median 10 ms, and no address was jitter-free.
+
+The exclusion half of the test is what bites here. A floor of 8 ms rules out
+geosynchronous orbit by a factor of thirty and the Moon by a factor of three
+hundred. The refusals at 170–181 ms in `103.149.23.0/24` rule that site out of
+geosynchronous orbit too, which agrees with the announcement: StarHub,
+Singapore, on the ground.
+
+So the fourth explanation has no evidence behind it, in either direction: for
+every address that answered, the measurement rules it out, and for the 89
+addresses that did not answer, the pass says nothing at all.
+
+One trap worth recording. Thirty-one of the 99 phase 3 answers fell within a
+quarter of the geosynchronous quantum, and every one of them was an ordinary
+long-haul path. Two things were wrong with that reading: the band is a filter
+rather than a finding, and it was applied there to two-round-trip times,
+which inflates a floor by roughly half.
+
+### Stability
+
+Pass 2 ran 21 minutes after pass 1. All 241 answers, all 241 body digests, and
+every control outcome were identical; not one address changed state.
+
+Stability is one of the discriminators, and these sites are stable, which is
+what the verdicts predict for ordinary services and evidence against a moving
+operation. A 21-minute window is a first data point, not a proof.
+
 ## Commits
 
 - `4ae326b` feat: characterize the phase 3 anomalies with control probes

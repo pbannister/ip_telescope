@@ -19,6 +19,15 @@
           belongs in the phase 4 battery or becomes its own collection step.
     * [ ] decide whether Site B warrants a hosting-abuse report to the
           announcing operator, and whether the project does that at all.
+    * [ ] obtain a second vantage point on another continent: the light-speed
+          test is only decisive when the same floor is seen from two places,
+          because a terrestrial server answers a nearby observer faster.
+    * [ ] run the far-field test deliberately: one pass with a long wait —
+          ten seconds reaches Sun–Earth L2 — on a sample of addresses, since
+          the ordinary budget records everything past it as a timeout.
+    * [ ] take more than three latency samples for any address whose floor
+          lands in a light-speed band, so the jitter criterion has something
+          to measure.
 * [ ] revise the characterization criteria as the phase 4 evidence arrives:
       what counts as self-explanation, whether a verdict needs a second
       observation, how to read a service that answers on only some of the

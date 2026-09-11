@@ -77,6 +77,16 @@ characterization was written first, in
 </p>
 
 <p>
+The light-speed test found nothing either. A round trip to geosynchronous
+orbit takes 239 ms at best and to the Moon 2,564 ms; no address measured
+anywhere near either. The smallest connect to the ARIN site was 8 ms, which
+rules out both distances outright, and the refusals at 170–181 ms agree with
+an operator on the ground. In the other direction the pass is silent: 89 of
+the 342 targets never answered within the five-second budget, and a timeout
+cannot be told apart from a responder further away than that.
+</p>
+
+<p>
 The RDAP enrichment of the 9,200 blocks answered for 8,556 and returned
 <code>404</code> for 27; 617 were left unanswered because
 <code>rdap.afrinic.net</code> was unreachable and the other registries rate
