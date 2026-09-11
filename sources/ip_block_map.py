@@ -744,6 +744,21 @@ def layers_build(
             if dict_routing.get("publication")
             else ""
         )
+        + (
+            f"<tr><th>Organization</th><td>{html.escape(str(dict_routing.get('organization')))}</td></tr>"
+            if dict_routing.get("organization")
+            else ""
+        )
+        + (
+            f"<tr><th>Earlier operators</th><td>{html.escape(str(dict_routing.get('earlier_operators')))}</td></tr>"
+            if dict_routing.get("earlier_operators")
+            else ""
+        )
+        + (
+            f"<tr><th>Why so many addresses</th><td>{html.escape(str(dict_routing.get('block_shape')))}</td></tr>"
+            if dict_routing.get("block_shape")
+            else ""
+        )
         + f"<tr><th>Certificate</th><td>{'<br>'.join(list_certificate) if list_certificate else 'none presented'}</td></tr>"
         "</table>"
     )

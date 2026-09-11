@@ -16,17 +16,20 @@
       "record": "../records-01-probe-characterization.html",
       "routing": {
         "origin_asn": "AS400050",
-        "origin_name": "Ology Newswire, Inc. (per bgp.he.net; no ARIN, PeeringDB, RADB, or RPKI record)",
+        "origin_name": "Ology Newswire, Inc. (ARIN organization handle ON-70, Monticello, Indiana; no network object for these addresses)",
         "announced": "23.191.144.0/24 - 23.191.151.0/24, eight of the block's fifteen /24s",
         "first_seen": "2021-10-21",
         "visibility": "322-324 of 324 RIS peers",
         "authorization": "no RPKI ROA (validation status unknown)",
-        "registry_object": "none: ARIN RDAP answers 404 for these addresses",
+        "registry_object": "none for the addresses: ARIN returns its own parent 23.0.0.0/8 (NET23), while neighbouring /24s it allocated in 2024 do have objects",
         "dns": "ology.com, feed/list/beacon/link/api/archive.ology.com -> 23.191.144.8/.9; ns1.ology.com -> 23.191.145.2",
         "registrant": "hidden behind Domains By Proxy, LLC (GoDaddy's privacy service); registry expiry 2029-03-07",
         "operators_named": "Ology Media, Inc. (2012 legal pages), NewPress, LLC (2012-2018 DMCA and privacy pages), Ology Newswire, Inc. (the ASN name today)",
-        "publication": "ology.substack.com, Public Square Networks: two posts, June and July 2021, dormant since",
-        "application": "Vue single-page app whose only data source is https://feed.ology.com/feed/<topic>/latest.jsonl; the feed times out, and the named services answer 400 (feed, list, link, api), 403 (beacon), 500 (archive)"
+        "publication": "ology.substack.com 'Public Square Networks': at least seven posts, June and July 2021 (a manifesto burst on 2021-07-21), dormant since; the early engagement is single digits",
+        "application": "Vue single-page app whose only data source is https://feed.ology.com/feed/<topic>/latest.jsonl; the feed times out, and the named services answer 400 (feed, list, link, api), 403 (beacon), 500 (archive)",
+        "block_shape": "a legacy non-CIDR reservation of 3,840 addresses (15 x /24) inside ARIN's own 23/8; 2,573 of the 6,094 ARIN records in that /8 are non-CIDR, against 3.3% across all ARIN records, so the size is an artifact of pre-CIDR history",
+        "organization": "IN-70 ... ARIN org ON-70, registered 2021-09-10, PO Box 834, Monticello IN; Indiana corporation OLOGY NEWSWIRE, INC., entity 202108261519136, 2021-08-26; remarks: https://ology.com, Virtual Public Square",
+        "earlier_operators": "Ology Media, Inc. (a 2010 Series A, a 2012 Android app with Zumobi), then NewPress, LLC (2012-2018 legal pages)"
       }
     },
     {

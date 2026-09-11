@@ -206,7 +206,126 @@ timeline, and a business. The genuinely unexplained part has narrowed to
 paperwork: an ASN and a block of address space in daily use since 2021 that no
 registry admits to knowing about.
 
-## Commits
+## Addendum 2: the registrant's company, the block's shape, and the cost — 2026-09-11
 
-- `4fe3070` docs: investigate ology.com and the block that serves it
+### A correction first
+
+The first addendum said ARIN held no record of the ASN or the organization.
+That was wrong, and the fault was the tool: **the port-43 whois client returns
+"No match found" for the organization handle ON-70 and for AS400050, while
+ARIN's own REST API serves the organization record**. The earlier control tests
+(AS15169, AS16509 and several ASNs in the same 32-bit block resolved) showed the
+client worked *for those*, which made the absence look real. It was not.
+
+What ARIN does and does not hold, checked through the REST API:
+
+- **An organization record exists**: handle **ON-70**, name **"Ology Newswire,
+  Inc."**, PO Box 834, **Monticello, Indiana** 47901, registered
+  **2021-09-10**, last changed 2022-01-14, with the remarks
+  `https://ology.com`, `Virtual Public Square`, `Ology Newswire, Inc.`
+- **No network object exists for these addresses**: an address in the answering
+  range resolves to ARIN's own parent `NET-23-0-0-0-0` (NET23, 23.0.0.0/8),
+  while a neighbouring `/24` that ARIN allocated in 2024 does have its own
+  object (`23.191.152.0/24`, holder "TBNETWORK"). The addresses are in ARIN's
+  space, unassigned, and ARIN's registry says so.
+
+So the picture is not "no records anywhere". It is: a registered company, with
+a registered organization handle, using unassigned space inside ARIN's own
+legacy `/8`.
+
+### Why so many addresses: the block's shape
+
+The block is **3,840 addresses — fifteen `/24`s — and it is not a CIDR**. That
+shape is the answer, and it is an artifact of history rather than a choice:
+
+- Across all ARIN records, 3.3 per cent are not CIDRs. **Inside `23.0.0.0/8`,
+  2,573 of 6,094 records — 42 per cent — are not CIDRs.** The `/8` is dominated
+  by pre-CIDR assignments, where a holder received "fifteen class C networks"
+  rather than a prefix.
+- The block sits among others of the same kind: `23.191.130.0` (1,536),
+  `23.191.137.0` (3,840), `23.191.153.0` (5,888), all `reserved`, none a CIDR,
+  none with a date or country — legacy holes in ARIN's own space.
+- Around them ARIN is still allocating: `23.191.136.0/24` (2024-10-10) and
+  `23.191.152.0/24` (2024-10-11) went out to holders in the last two years.
+
+**The size was never the operator's decision.** There is no sign they asked for
+2,048 addresses, and no sign they need them: the announced set is eight of the
+fifteen `/24`s, one per site they run. The block is a legacy hole, not a
+statement of scale — which also removes the block's size as evidence for any
+scheme that would *need* many addresses.
+
+### The company, from free registries
+
+- **Indiana corporation**: OLOGY NEWSWIRE, INC., entity 202108261519136,
+  registered **2021-08-26** (city-data's rendering of the Indiana business
+  registry). A PO Box in Monticello, Indiana.
+- **ARIN organization ON-70**: registered 2021-09-10, three weeks later, two
+  weeks before the ASN's first announcement on 2021-10-21. The sequence is a
+  company being set up: incorporate, get a registry handle, announce.
+- **The earlier operators were funded**: Ology Media, Inc. shows a **2010
+  Series A** (Crunchbase), and in **May 2012** it launched an Android app with
+  Zumobi, announced by press release.
+
+### What it costs to keep this alive
+
+Estimates from public price lists; treat them as an order of magnitude, and
+check current pricing before relying on any of them.
+
+| Item | Typical price | Monthly equivalent |
+| --- | --- | --- |
+| `.com` registration and renewal (GoDaddy, privacy proxy included) | about $20-40 a year | $2-3 |
+| Route 53 hosted zone and a little query traffic | $0.50 a month plus $0.40 per million queries | $1 |
+| Amazon SES, if a newsletter ran to a few thousand subscribers | $0.10 per thousand messages | $1-5 |
+| Hosting: a handful of small VPS instances (the paths end in Vultr's network) | $6-24 each per month | $15-100 |
+| TLS certificates (Let's Encrypt, the issuer seen here) | free | $0 |
+| Substack | free, with a share of paid subscriptions | $0 |
+| **ARIN resources** | the smallest resource-holder tier runs in the low hundreds of dollars a year, and a 32-bit ASN assignment carries a one-time fee of the same order — **but unassigned space in ARIN's own `/8` may carry no fee at all** | $0-40 |
+| **Running total while dormant (today)** | | **roughly $20-50** |
+| **Running total during the build (2021-2023)** | a few sites, mail, and a developer's time on top | **roughly $100-400** |
+
+Over five years the infrastructure is plausibly **$5,000-20,000**, plus
+whatever the founder's time was worth. The point of the estimate is not the
+precision: it is that **the floor is tiny**. A prepaid domain, a registry handle
+nobody bills, unassigned legacy space, and a couple of small VMs is a few tens
+of dollars a month — which is exactly how an abandoned startup's infrastructure
+stays reachable for five years without anyone noticing or caring.
+
+### The promotion footprint
+
+| When | What | Where it is visible |
+| --- | --- | --- |
+| 2010 | **Ology Media, Inc.** raised a Series A | Crunchbase funding-round record |
+| 2012-05-16 | Press release: "Ology Media Teams With Zumobi to Launch New Android App All About Interests" | firmenpresse (Marketwire syndication) |
+| 2012-2018 | The social and content site, with About, Privacy, Terms, DMCA pages naming Ology Media, Inc. and NewPress, LLC | Internet Archive captures of the legal pages |
+| 2021-06 to 2021-07 | **The launch**: `ology.substack.com`, "Public Square Networks", at least seven posts, six of them on 2021-07-21 — "The Time Has Come", "Public Square Networks", "Emerging Identity Paradigms", "Freedom of Speech", "The Evolution of the Web", "Of Internets, Past and Future" | Substack's own archive API |
+| 2021-08-26 | Indiana corporation registered | Indiana business registry, via city-data |
+| 2021-09-10 | ARIN organization handle ON-70 registered | ARIN REST |
+| 2021-10-21 | The ASN's first announcement | RIPEstat routing history |
+
+The written intent is explicit in the launch posts: a **decentralized
+publishing network** — "Public Square Networks implement free speech in the
+American sense, providing each publisher with a means of establishing identity,
+attaching verified political status to that identity if desired, and publishing
+into one or more networks", with "global identity and content addressing" that
+survives any single service. The name on the ARIN record, "Virtual Public
+Square", is the same idea in three words.
+
+The audience was never there: the manifesto post shows single-digit reactions,
+and the Substack has published nothing since July 2021. That is the "aspirational
+but unfulfilled" reading, in the founder's own words, with dates.
+
+Note for completeness: a WordPress plugin named "Virtual Public Square" appears
+in search results and is unrelated to this company.
+
+### What this leaves
+
+The anomaly has shrunk to one sentence: **a small, registered, apparently
+abandoned publishing venture runs its last hosts on unassigned address space
+inside ARIN's own legacy `/8`, announced by an ASN whose organization record
+exists but whose network record does not.** Everything else — the size of the
+block, the spread of hosts, the dead feed, the expired certificates, the tiny
+bills — is now ordinary, and the ordinary reading has names, dates, and prices
+attached.
+
+## Commits
 - `7613baf` docs: follow the registrant and the application behind site A
